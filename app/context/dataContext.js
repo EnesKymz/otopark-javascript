@@ -1,5 +1,6 @@
 "use client"
 import React, { createContext, useState, useContext, useCallback, useEffect } from 'react';
+import toast from 'react-hot-toast';
 
 const DataContext = createContext();
 
@@ -14,21 +15,19 @@ export const DataProvider = ({ children }) => {
   });
 
   const [totalDayVehicle, setTotalDayVehicle] = useState(0);
-
   // Verileri localStorage'a kaydediyoruz
   useEffect(() => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('vehiclesData', JSON.stringify(vehiclesData));
       // Günlük araç sayısını güncelle
+      console.error(JSON.stringify(vehiclesData))
       const today = new Date().toISOString().split('T')[0];
       const todayVehicles = vehiclesData.filter(vehicle => 
         vehicle.time && vehicle.time.includes(today)
       );
-      setTotalDayVehicle(todayVehicles.length);
       console.error("Toplam",todayVehicles.length)
     }
   }, [vehiclesData]);
-
   // Daha güvenli araç ekleme fonksiyonu
   const addVehicle = useCallback((newVehicle) => {
     if (!newVehicle?.plate) {
@@ -36,19 +35,21 @@ export const DataProvider = ({ children }) => {
       return false;
     }
     const ID = Number(newVehicle.id)
+    const date = newVehicle.joinDate;
     const formattedVehicle = {
       ...newVehicle,
-      id: ID||"X",
-      plate: newVehicle.plate.trim().toUpperCase(),
-      time: newVehicle.time || new Date().toISOString(),
-      price: newVehicle.price || 50
+      id: ID,
+      plate: newVehicle.plate,
+      joinDate: date,
+      price: newVehicle.price || 50,
+      createdAt: newVehicle.createdAt
     };
 
     setVehiclesData(prev => {
       // Plaka kontrolü
       const plateExists = prev.some(v => v.plate === formattedVehicle.plate);
       if (plateExists) {
-        console.warn('Bu plaka zaten kayıtlı:', formattedVehicle.plate);
+        toast.error('Bu plaka zaten kayıtlı:', formattedVehicle.plate);
         return prev;
       }
       return [...prev, formattedVehicle];
@@ -64,14 +65,17 @@ export const DataProvider = ({ children }) => {
       vehicle.id === id ? { ...vehicle, ...updatedData } : vehicle
     ));
   }, []);
-
+  const removeVehicle = useCallback((id) => {
+    setVehiclesData(prev => prev.filter(item => item.id !==id));
+  }, []);
   // Context değerleri
   const contextValue = {
     vehiclesData,
     totalDayVehicle,
     addVehicle,
     updateVehicle,
-    setTotalDayVehicle
+    setTotalDayVehicle,
+    removeVehicle,
     // setVehiclesData ve setTotalDayVehicle'i dışarı açmak istemiyorsanız kaldırabilirsiniz
   };
 

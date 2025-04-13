@@ -1,23 +1,39 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import { toast, ToastBar, Toaster } from "react-hot-toast"
 import { useSession } from "next-auth/react"
+import { useRouter } from "next/navigation"
 import {dbfs} from "@/app/firebase/firebaseConfig";
-import { collection, doc, getDoc, getDocs, setDoc, sum, updateDoc } from "firebase/firestore"
-import { DataGrid } from '@mui/x-data-grid';
+import { collection, collectionGroup, deleteDoc, doc, FieldValue, getDoc, getDocs, query, setDoc, updateDoc, where } from "firebase/firestore"
+import {   
+  GridRowModes,
+  DataGrid,
+  GridActionsCellItem,
+  GridRowEditStopReasons,
+  } from '@mui/x-data-grid';
 import { useDataContext } from "../context/dataContext";
-import { Paper } from "@mui/material";
+import { Button, Paper } from "@mui/material";
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/DeleteOutlined';
+import SaveIcon from '@mui/icons-material/Save';
+import CancelIcon from '@mui/icons-material/Close';
+import AddTaskIcon from '@mui/icons-material/AddTask';
+import { MoonLoader } from "react-spinners"
 export default function VehicleEntryExit() {
   const {data: session,status} = useSession();
+  const router = useRouter()
   const [licensePlate, setLicensePlate] = useState("")
   const [isValid, setIsValid] = useState(true)
   const [recentActivity, setRecentActivity] = useState([])
-  const {vehiclesData,totalDayVehicle,setTotalDayVehicle,addVehicle} = useDataContext()
+  const {vehiclesData,totalDayVehicle,setTotalDayVehicle,addVehicle,updateVehicle,removeVehicle} = useDataContext()
+  const [rowModesModel, setRowModesModel] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
+  const [isCikis,setIsCikis] = useState(null)
+  const [encodedEmail,setEncodedEmail] = useState("")
   function getTurkeyDate() {
     const now = new Date();
-    // UTC+3 offset (yaz/kış saati otomatik hesaplamaz, sabit +3)
-    const offset = 3 * 60 * 60 * 1000; // 3 saat milisaniye cinsinden
+    const offset = 3 * 60 * 60 * 1000;
     const turkeyTime = new Date(now.getTime() + offset);
     
     return turkeyTime.toISOString().split('T')[0]; // "2025-04-01"
@@ -31,42 +47,132 @@ export default function VehicleEntryExit() {
     }
     if (!session || typeof session !== 'object' || !session.user || !session.user.email) {
       throw new Error('Eksik kullanıcı bilgisi');
-    }
-    console.error("Total:",totalDayVehicle)
-    
+    }    
     
     const email = session.user.email
     if(!email){
       return;
     }
-    const encodedEmail = email.replace(/\./g, '_dot_').replace('@','_q_');
-    
+    const encodeMail = email.replace(/\./g, '_dot_').replace('@','_q_');
+    setEncodedEmail(encodeMail);
     const date = getTurkeyDate()
-    const summaryRef = doc(dbfs,`admins/${encodedEmail}/daily_payments/${date}`)
+    const [year,month,day] = date.split("-")
+    const summaryRef = doc(dbfs,`admins/${encodeMail}/years/year_${year}/daily_payments/${date}`)
     const snapshot = await getDoc(summaryRef)
+    let count = 0
     if(snapshot.exists()){
       const summary = snapshot.data().summary
-      const count = summary.count;
+      count = summary.count;
       setTotalDayVehicle(count)
     }
-    if(vehiclesData.length>0){
+    
+    if((count === vehiclesData.length)){
       return;
     }
-    const transactionRef = collection(dbfs,`admins/${encodedEmail}/daily_payments/${date}/transactions`)
-    const querySnapshot = await getDocs(transactionRef)
-    if(querySnapshot.size ==0){
-      return;
-    }
-      let perID = 0
+    const q = query(
+      collectionGroup(dbfs,'transactions'),
+      where("cikis","==",false)
+    );
+    const querySnapshot = await getDocs(q)
       for(const doc of querySnapshot.docs){
-        addVehicle({id:perID++,...doc.data().details})
+        const StringID = doc.id.replace("autoID","");
+        const numberID = Number(StringID)
+        addVehicle({id:numberID,...doc.data().details})
       }
     }catch(error){
       console.error(error)
+    }finally{
+      setIsLoading(false)
     }
   }
     getData()
   },[])
+  const handleRowEditStop = (params, event) => {
+    if (params.reason === GridRowEditStopReasons.rowFocusOut) {
+      event.defaultMuiPrevented = true;
+    }
+  };
+
+  const handleEditClick = (id) => () => {
+    setRowModesModel({ ...rowModesModel, [id]: { mode: GridRowModes.Edit } });
+  };
+
+  const handleSaveClick = (id) => () => {
+    setRowModesModel({ ...rowModesModel, [id]: { mode: GridRowModes.View } });
+  };
+
+  const handleDeleteClick = (id) => () => {
+    if (confirm("Bu aracı silmek istediğinize emin misiniz?")) {
+    removeVehicle(id)
+    const email = session?.user?.email
+    if(!email){
+      return;
+    }
+    const vehicle = vehiclesData.find(item =>item.id ===id)
+    const createdTime = new Date(vehicle.createdAt)
+    if(!createdTime){
+      toast.error("Tarih bulunamadı veya hatalı")
+      return;
+    }
+    const createdYear = createdTime.getFullYear()
+    console.error(createdYear)
+    const encodedEmail = email.replace(/\./g, '_dot_').replace('@','_q_');
+    const date= getTurkeyDate()
+    const plateRef = doc(dbfs,`admins/${encodedEmail}/years/year_${createdYear}/daily_payments/${date}/transactions/autoID${id}`)
+    deleteDoc(plateRef)
+    const newTotal = totalDayVehicle-1
+    setTotalDayVehicle(newTotal)
+    const summaryRef = doc(dbfs,`admins/${encodedEmail}/years/year_${createdYear}/daily_payments/${date}`);
+    updateDoc(summaryRef,{
+        "summary.count":newTotal
+    })
+    toast.success(`${id} numaralı araç başarıyla silindi.`)
+    }
+  };
+
+  const handleCancelClick = (id) => () => {
+    setRowModesModel({
+      ...rowModesModel,
+      [id]: { mode: GridRowModes.View, ignoreModifications: true },
+    });
+
+    const editedRow = vehiclesData.find((row) => row.id === id);
+    if (editedRow.isNew) {
+      setTotalDayVehicle(vehiclesData.filter((row) => row.id !== id));
+    }
+  };
+
+  const processRowUpdate = (newRow) => {
+   const updatedRow = { ...newRow, isNew: false };
+   if(!newRow.id||!newRow.plate||!newRow.price||!newRow.joinDate){
+    !newRow.id && toast.error("ID değeri boş bırakılamaz")
+    !newRow.plate && toast.error("Plaka değeri boş bırakılamaz")
+    !newRow.joinDate && toast.error("Tarih değeri boş bırakılamaz")
+    !newRow.price && toast.error("Ücret değeri boş bırakılamaz")
+    return;
+   }
+    updateVehicle(newRow.id,newRow);
+    const email = session?.user?.email
+      if(!email){
+        return;
+      }
+      const encodedEmail = email.replace(/\./g, '_dot_').replace('@','_q_');
+      const date= getTurkeyDate()
+      const [year,month,day] = date.split("-")
+      const stringTime = JSON.stringify(newRow.joinDate)
+    const plateRef = doc(dbfs,`admins/${encodedEmail}/years/year_${year}/daily_payments/${date}/transactions/autoID${newRow.id}`)
+    
+    updateDoc(plateRef,{
+        "details.plate":newRow.plate,
+        "details.joinDate":stringTime,
+        "details.price":newRow.price,
+    },{merge:true})
+    return updatedRow;
+  };
+
+  const handleRowModesModelChange = (newRowModesModel) => {
+    setRowModesModel(newRowModesModel);
+  };
 
   const validateLicensePlate = (plate) => {
     const regex = /^[0-9]{2}\s?[A-Z]{1,6}\s?[0-9]{2,5}$/
@@ -79,42 +185,57 @@ export default function VehicleEntryExit() {
     setIsValid(validateLicensePlate(value))
   }
 
-  const handleAction = () => {
-    if (!isValid) {
+  const handleAction = async() => {
+    if (!isValid ||!licensePlate) {
       toast.error("Geçersiz plaka numarası!")
       return
     }
-    console.error(totalDayVehicle)
-    const maxID = totalDayVehicle+1;
+    const maxID = vehiclesData.length > 0 ? Math.max(...vehiclesData.map(item =>item.id))+1 : 1
+    
       const formatter = new Intl.DateTimeFormat("tr-TR", {
         timeZone: "Europe/Istanbul",
         day: "2-digit",
         month: "2-digit",
-        year: "numeric"
+        year: "numeric",
+        hour:"2-digit",
+        minute:"2-digit",
+        hour12:false,
       });
-      const [day, month, year] = formatter.format(new Date()).split(".");
-      const date =getTurkeyDate()
+      const nowInTurkey = new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Istanbul" }));
+      const utcFormat = nowInTurkey.toISOString();
+      const [day, month, yearandtime] = formatter.format(new Date()).split(".");
+      const [year, time] = yearandtime.trim().split(" ");
+      const date = getTurkeyDate()
       const email = session?.user?.email
       if(!email){
         return;
       }
       const encodedEmail = email.replace(/\./g, '_dot_').replace('@','_q_');
-      const userRef = doc(dbfs,`admins/${encodedEmail}/daily_payments/${date}/transactions/autoID${maxID}`);
-      const summaryRef = doc(dbfs,`admins/${encodedEmail}/daily_payments/${date}`);
-      const dateFull = `${day}/${month}/${year}`
+      const userRef = doc(dbfs,`admins/${encodedEmail}/years/year_${year}/daily_payments/${date}/transactions/autoID${maxID}`);
+      const summaryRef = doc(dbfs,`admins/${encodedEmail}/years/year_${year}/daily_payments/${date}`);
+      const summarySnapshot = await getDoc(summaryRef);
+      const summaryData = summarySnapshot.data()
+      const maxIdDB = summaryData?.summary.maxID || 0
      setDoc(userRef,{
       details:{
         plate:licensePlate,
-        date:dateFull,
-        price:50
-      }
+        joinDate:utcFormat,
+        price:50,
+        createdAt:utcFormat
+      },
+      cikis:false,
      });
-     addVehicle({id:maxID,plate:licensePlate,
-      date:dateFull,
-      price:50})
+     setTotalDayVehicle(vehiclesData.length+1)
+     addVehicle({
+      id:maxIdDB+1,
+      plate:licensePlate,
+      joinDate:utcFormat,
+      price:50,
+      createdAt:utcFormat,})
      setDoc(summaryRef,{
       summary:{
-        count:maxID
+        count:vehiclesData.length+1,
+        maxID:maxIdDB+1
       }
      },{merge:true})
     
@@ -123,32 +244,136 @@ export default function VehicleEntryExit() {
       {
         plate: licensePlate,
         action:"giriş",
-        time: new Date().toLocaleTimeString(),
+        time: new Date().toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" }),
       },
       ...prev.slice(0, 3),
     ]);
     setLicensePlate("");
     
   }
+  const ExitVehicle = (id) =>async()=>{
+    if(isCikis !==null){
+      const selectedVehicle = vehiclesData.find(item =>item.id ===id)
+      const createdTime = new Date(selectedVehicle.createdAt)
+      console.error("Created Time:",JSON.stringify(createdTime))
+      const [year, month, day] = [
+        createdTime.getFullYear(),
+        (createdTime.getMonth() + 1).toString().padStart(2, '0'),
+        createdTime.getDate().toString().padStart(2, '0')
+      ];
+      const vehicleRef = doc(dbfs,`admins/${encodedEmail}/years/year_${year}/daily_payments/${year}-${month}-${day}/transactions/autoID${isCikis.id}`)
+      console.error(JSON.stringify(vehicleRef))
+      setDoc(vehicleRef,{
+        cikis:true,
+      },{merge:true})
+      const date = getTurkeyDate()
+      const summaryRef = doc(dbfs,`admins/${encodedEmail}/years/year_${year}/daily_payments/${date}`);
+      const summarySnapshot = await getDoc(summaryRef);
+      const summaryData = summarySnapshot.data()
+      const count = summaryData?.summary.count || 0
+      updateDoc(summaryRef,{
+        "summary.count":count-1
+       },{merge:true})
+      removeVehicle(selectedVehicle.id)
+      setIsCikis(null)
+      setRecentActivity((prev) => [
+        {
+          plate: selectedVehicle.plate,
+          action:"çıkış",
+          time: new Date().toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" }),
+        },
+        ...prev.slice(0, 3),
+      ]);
+      setTotalDayVehicle(totalDayVehicle-1)
+      toast.success(`${selectedVehicle.plate} plakalı aracın çıkışı yapıldı`)
+    }else{
+      const cikisTarih = new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Istanbul"})).toISOString().slice(0,16)
+      setIsCikis(prev => ({
+        ...vehiclesData.find(item => item.id === id),
+        cikisTarih: cikisTarih
+      }));
+    }
+  }
   const columns = [
-    { field: "id", headerName: 'ID', width: 90 },
+    { field: "id", headerName: 'ID', width: 90, },
     {
       field: 'plate',
       headerName: 'Plaka',
       type: 'string',
       width: 180,
+      editable:true,
     },
     {
-      field: 'date',
+      field: 'joinDate',
       headerName: 'Tarih',
-      type: 'string',
+      type: 'dateTime',
       width: 180,
+      editable:true,
+      valueGetter: (value,row) => {
+        const date = row.joinDate;
+        if (!date) return null;
+        const turkeyTime = new Date(date); // +3 saat
+    
+        return turkeyTime;
+      },
     },
     {
       field: 'price',
       headerName: 'Ücret',
       type: 'string',
       width: 90,
+      editable:true,
+    },
+    {
+      field: 'actions',
+      type: 'actions',
+      headerName: 'Aksiyonlar',
+      width: 100,
+      cellClassName: 'actions',
+      getActions: ({ id }) => {
+        const isInEditMode = rowModesModel[id]?.mode === GridRowModes.Edit;
+        if (isInEditMode) {
+          return [
+            <GridActionsCellItem key={id}
+            icon={<SaveIcon/>}
+              label="Save"
+              sx={{
+                color: 'primary.main',
+              }}
+              onClick={handleSaveClick(id)}
+            />,
+            <GridActionsCellItem key={id}
+            icon={<CancelIcon/>}
+              label="Cancel"
+              className="textPrimary"
+              onClick={handleCancelClick(id)}
+              color="inherit"
+            />,
+          ];
+        }
+
+        return [
+          <GridActionsCellItem key={id}
+            icon={<EditIcon/>}
+            label="Edit"
+            className="textPrimary"
+            onClick={handleEditClick(id)}
+            color="inherit"
+          />,
+          <GridActionsCellItem key={id}
+          icon={<DeleteIcon/>}
+            label="Delete"
+            onClick={handleDeleteClick(id)}
+            color="inherit"
+          />,
+          <GridActionsCellItem key={id}
+          icon={<AddTaskIcon/>}
+          label="Delete"
+          onClick={ExitVehicle(id)}
+          color="inherit"
+         /> 
+        ];
+      },
     },
   ];
   const paginationModel = { page: 0, pageSize: 10 };
@@ -156,6 +381,8 @@ export default function VehicleEntryExit() {
     <div className="flex flex-col w-full min-h-screen bg-gray-50">
 
   {/* Ana İçerik */}
+  
+
   <div className="flex flex-col md:flex-row gap-6 p-6 max-w-7xl mx-auto w-full">
     {/* Sol Panel - Araç Girişi */}
     <div className="w-full md:w-1/3 bg-white rounded-xl shadow-md p-6">
@@ -214,19 +441,112 @@ export default function VehicleEntryExit() {
         </div>
         
         <div className="overflow-x-auto">
-        <Paper sx={{ height: 400, width: '100%' }}>
-          <DataGrid
-            rows={vehiclesData}
-            columns={columns}
-            initialState={{ pagination: { paginationModel }, sorting: {
-              sortModel: [{ field: 'id', sort: 'desc' }],
-            }, }}
-            pageSizeOptions={[5, 10,100]}
-            checkboxSelection
-            sx={{ border: 0 }}
-            
-          />
-        </Paper>
+        { !isLoading ? (
+          <div className="flex justify-between">
+          <Paper className="flex" sx={{ height: 400, width: '100%' }}>
+            <DataGrid
+              rows={vehiclesData}
+              columns={columns}
+              editMode="row"
+              rowModesModel={rowModesModel}
+              paginationModel={paginationModel}
+              onRowModesModelChange={handleRowModesModelChange}
+              onRowEditStop={handleRowEditStop}
+              processRowUpdate={processRowUpdate}
+              pageSizeOptions={[5, 10,100]}
+              sx={{ border: 0 }}
+              onProcessRowUpdateError={(error) => console.error(error)}
+              
+              />
+          {isCikis && (
+          <div className="flex flex-col bg-white bg-opacity-30 w-full h-full border-2 border-indigo-600 rounded-lg p-6 backdrop-blur-sm">
+          <div className="flex justify-between">
+          <h2 className="text-2xl font-bold text-indigo-700 mb-6">Araç Çıkışı</h2>
+          <button onClick={()=>setIsCikis(null)} className="text-2xl font-bold text-indigo-700 mb-6 p-2  bg-white shadow rounded shadow-gray-400 cursor-pointer">X</button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Plaka Alanı */}
+            <div className="space-y-2">
+              <label htmlFor="plaka" className="block text-sm font-medium text-gray-700">
+                Plaka No
+              </label>
+              <input
+                id="plaka"
+                type="text"
+                placeholder="34 ABC 123"
+                value={isCikis.plate}
+                className="w-full px-4 py-2 rounded-md border bg-gray-300 border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                disabled={true}
+              />
+            </div>
+        
+            {/* Ücret Alanı */}
+            <div className="space-y-2">
+              <label htmlFor="ucret" className="block text-sm font-medium text-gray-700">
+                Ücret (₺)
+              </label>
+              <input
+                id="ucret"
+                type="number"
+                placeholder="50.00"
+                value={isCikis.price}
+                onChange={(e) => {
+                  const newValue = e.target.value;
+                  setIsCikis(prev => ({...prev, price: newValue}));
+                }}
+                className="w-full px-4 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
+              />
+            </div>
+        
+            {/* Giriş Tarihi */}
+            <div className="space-y-2">
+              <label htmlFor="giris" className="block text-sm font-medium text-gray-700">
+                Giriş Tarihi
+              </label>
+              <input
+                id="giris"
+                type="datetime-local"
+                value={isCikis.joinDate ? new Date(isCikis.joinDate).toISOString().slice(0, 16) : ""}
+                onChange={(e) => {
+                  const newValue = e.target.value;
+                  // Yerel zamanı UTC'ye çevir
+                  const utcDate = new Date(newValue).toISOString();
+                  setIsCikis(prev => ({...prev, joinDate: utcDate }));
+                }}
+                className="w-full px-4 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+              />
+            </div>
+        
+            {/* Çıkış Tarihi */}
+            <div className="space-y-2">
+              <label htmlFor="cikis" className="block text-sm font-medium text-gray-700">
+                Çıkış Tarihi
+              </label>
+              <input
+                id="cikis"
+                type="datetime-local"
+                className="w-full px-4 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                value={isCikis.cikisTarih ? new Date(isCikis.cikisTarih).toISOString().slice(0, 16) : ""}
+              />
+            </div>
+          </div>
+        
+          {/* Kaydet Butonu */}
+          <div className="mt-8 flex justify-end">
+            <button onClick={ExitVehicle(isCikis.id)}
+              type="button"
+              className="px-6 py-2 bg-indigo-400 text-white font-medium rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors"
+            >
+              Çıkış
+            </button>
+          </div>
+        </div>)}
+          
+          </Paper>
+          
+          </div>
+          ):(<div className="flex flex-col justify-center items-center m-25 p-3 h-full"><MoonLoader color="#7b14e8" size={40} speedMultiplier={0.4}/></div>)
+        }
         </div>
       </div>
     </div>
