@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { forwardRef, useEffect, useState } from "react"
 import { toast, ToastBar, Toaster } from "react-hot-toast"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
@@ -13,17 +13,43 @@ import {
   GridRowEditStopReasons,
   } from '@mui/x-data-grid';
 import { useDataContext } from "../context/dataContext";
-import { Button, Paper } from "@mui/material";
+import { Button, FormControl, Input, InputLabel, Paper, Stack } from "@mui/material";
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Close';
 import AddTaskIcon from '@mui/icons-material/AddTask';
 import { MoonLoader } from "react-spinners"
-export default function VehicleEntryExit() {
+import { IMaskInput } from "react-imask"
+import PropTypes from "prop-types"
+const TextMaskCustom = forwardRef(function TextMaskCustom(props, ref) {
+    const { onChange, ...other } = props;
+    return (
+      <IMaskInput
+        {...other}
+        mask="(#00) 000-0000"
+        definitions={{
+          '#': /[1-9]/,
+        }}
+        inputRef={ref}
+        onAccept={(value) => onChange({ target: { name: props.name, value } })}
+        overwrite
+      />
+    );
+  });
+  
+  TextMaskCustom.propTypes = {
+    name: PropTypes.string.isRequired,
+    onChange: PropTypes.func.isRequired,
+  };
+export default function SubscriptionManage() {
   const {data: session,status} = useSession();
   const router = useRouter()
-  const [licensePlate, setLicensePlate] = useState("")
+  const [subscriber, setSubscriber] = useState("")
+  const [phoneNumber, setPhoneNumber] = useState("")
+  const [dateValue, setDateValue] = useState()
+  const [price, setPrice] = useState(0)
+
   const [isValid, setIsValid] = useState(true)
   const [recentActivity, setRecentActivity] = useState([])
   const {vehiclesData,totalDayVehicle,setTotalDayVehicle,addVehicle,updateVehicle,removeVehicle} = useDataContext()
@@ -31,6 +57,10 @@ export default function VehicleEntryExit() {
   const [isLoading, setIsLoading] = useState(true);
   const [isCikis,setIsCikis] = useState(null)
   const [encodedEmail,setEncodedEmail] = useState("")
+  const [values, setValues] = useState({
+    textmask: '',
+    numberformat: '1320',
+  });
   function getTurkeyDate() {
     const now = new Date();
     const offset = 3 * 60 * 60 * 1000;
@@ -80,7 +110,7 @@ export default function VehicleEntryExit() {
         addVehicle({id:numberID,...doc.data().details})
       }
     }catch(error){
-      console.error(error.message)
+      console.error(error)
     }finally{
       setIsLoading(false)
     }
@@ -115,6 +145,7 @@ export default function VehicleEntryExit() {
       return;
     }
     const createdYear = createdTime.getFullYear()
+    console.error(createdYear)
     const encodedEmail = email.replace(/\./g, '_dot_').replace('@','_q_');
     const date= getTurkeyDate()
     const plateRef = doc(dbfs,`admins/${encodedEmail}/years/year_${createdYear}/daily_payments/${date}/transactions/autoID${id}`)
@@ -172,18 +203,27 @@ export default function VehicleEntryExit() {
   const handleRowModesModelChange = (newRowModesModel) => {
     setRowModesModel(newRowModesModel);
   };
-
-  const validateLicensePlate = (plate) => {
-    const regex = /^[0-9]{2}\s?[A-Z]{1,6}\s?[0-9]{2,5}$/
-    return regex.test(plate)
+  const subscribtionDetailAdd = (e) => {
+    if(e.subscriber){
+        const value = e.subscriber.target.value.toUpperCase()
+        setSubscriber(value)
+    }
+    if(e.mask){
+    setValues({
+        ...values,
+        [e.mask.target.name]: e.mask.target.value,
+        });
+    }
+    if(e.date){
+        const value = e.date.target.value
+        console.error(value)
+        setDateValue(value)
+    }
+    if(e.price){
+        const value = e.price.target.value
+        setPrice(value)
+    }
   }
-
-  const handleLicensePlateChange = (e) => {
-    const value = e.target.value.toUpperCase()
-    setLicensePlate(value)
-    setIsValid(validateLicensePlate(value))
-  }
-
   const handleAction = async() => {
     if (!isValid ||!licensePlate) {
       toast.error("Geçersiz plaka numarası!")
@@ -224,7 +264,7 @@ export default function VehicleEntryExit() {
       },
       cikis:false,
      });
-     setTotalDayVehicle(maxIdDB+1)
+     setTotalDayVehicle(vehiclesData.length+1)
      addVehicle({
       id:maxIdDB+1,
       plate:licensePlate,
@@ -254,12 +294,14 @@ export default function VehicleEntryExit() {
     if(isCikis !==null){
       const selectedVehicle = vehiclesData.find(item =>item.id ===id)
       const createdTime = new Date(selectedVehicle.createdAt)
+      console.error("Created Time:",JSON.stringify(createdTime))
       const [year, month, day] = [
         createdTime.getFullYear(),
         (createdTime.getMonth() + 1).toString().padStart(2, '0'),
         createdTime.getDate().toString().padStart(2, '0')
       ];
       const vehicleRef = doc(dbfs,`admins/${encodedEmail}/years/year_${year}/daily_payments/${year}-${month}-${day}/transactions/autoID${isCikis.id}`)
+      console.error(JSON.stringify(vehicleRef))
       setDoc(vehicleRef,{
         cikis:true,
       },{merge:true})
@@ -281,6 +323,7 @@ export default function VehicleEntryExit() {
         },
         ...prev.slice(0, 3),
       ]);
+      setTotalDayVehicle(totalDayVehicle-1)
       toast.success(`${selectedVehicle.plate} plakalı aracın çıkışı yapıldı`)
     }else{
       const cikisTarih = new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Istanbul"})).toISOString().slice(0,16)
@@ -382,21 +425,56 @@ export default function VehicleEntryExit() {
   <div className="flex flex-col md:flex-row gap-6 p-6 max-w-7xl mx-auto w-full">
     {/* Sol Panel - Araç Girişi */}
     <div className="w-full md:w-1/3 bg-white rounded-xl shadow-md p-6">
-      <h2 className="text-xl font-semibold text-gray-800 mb-4">Araç Girişi</h2>
+      <h2 className="text-xl font-semibold text-gray-800 mb-4">Abone Yönetimi</h2>
       
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Plaka</label>
           <input
-            value={licensePlate}
-            onChange={(value) => handleLicensePlateChange(value)}
+            value={subscriber}
+            onChange={(value) => subscribtionDetailAdd({subscriber:value})}
             className={`w-full p-3 border rounded-lg ring-0 focus:outline-none focus:ring-2  ${
-              !isValid && licensePlate ? " focus:ring-red-400 focus:border-red-400" : "focus:ring-indigo-500 focus:border-indigo-500"
+               !subscriber ? " focus:ring-red-400 focus:border-red-400" : "focus:ring-indigo-500 focus:border-indigo-500"
             }`}
-            placeholder="79 ABC 123"
+            placeholder="Ad - Soyad"
           />
         </div>
-
+        <div>
+        <Stack direction="row" spacing={2}>
+      <FormControl variant="standard">
+        <InputLabel htmlFor="formatted-text-mask-input">Telefon Numarası</InputLabel>
+        <Input
+          value={values.textmask}
+          placeholder="(500) 000-0000"
+          onChange={(event)=>subscribtionDetailAdd({mask:event})}
+          name="textmask"
+          id="formatted-text-mask-input"
+          inputComponent={TextMaskCustom}
+        />
+      </FormControl>
+    </Stack>
+        </div>
+        <div>
+          <input
+            value={dateValue}
+            type="date"
+            onChange={(value) => subscribtionDetailAdd({date:value})}
+            className={`w-full p-3 border rounded-lg ring-0 focus:outline-none focus:ring-2  ${
+              !dateValue ? " focus:ring-red-400 focus:border-red-400" : "focus:ring-indigo-500 focus:border-indigo-500"
+            }`}
+            placeholder="Giriş Tarihi"
+          />
+        </div>
+        <div>
+          <input
+            value={price}
+            type="number"
+            onChange={(value) => subscribtionDetailAdd({price:value})}
+            className={`w-full p-3 border rounded-lg ring-0 focus:outline-none focus:ring-2  ${
+              !price ? " focus:ring-red-400 focus:border-red-400" : "focus:ring-indigo-500 focus:border-indigo-500"
+            }`}
+            placeholder="Ücret"
+          />
+        </div>
         <button
           onClick={() => handleAction()}
           className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-4 rounded-lg transition-colors"
@@ -428,12 +506,7 @@ export default function VehicleEntryExit() {
     <div className="w-full md:w-2/3">
       <div className="bg-white rounded-xl shadow-md overflow-hidden">
         <div className="flex justify-between p-4 border-b">
-          <h2 className="text-xl text-start font-semibold text-gray-800">Araç Listesi</h2>
-          <div className="flex items-end text-end space-x-4">
-            <span className="bg-indigo-500 text-white px-3 py-1 rounded-full text-sm">
-              Bugün: {totalDayVehicle} araç
-            </span>
-          </div>
+          <h2 className="text-xl text-start font-semibold text-gray-800">Abone Listesi</h2>
         </div>
         
         <div className="overflow-x-auto">

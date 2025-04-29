@@ -20,12 +20,10 @@ export const DataProvider = ({ children }) => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('vehiclesData', JSON.stringify(vehiclesData));
       // Günlük araç sayısını güncelle
-      console.error(JSON.stringify(vehiclesData))
       const today = new Date().toISOString().split('T')[0];
       const todayVehicles = vehiclesData.filter(vehicle => 
         vehicle.time && vehicle.time.includes(today)
       );
-      console.error("Toplam",todayVehicles.length)
     }
   }, [vehiclesData]);
   // Daha güvenli araç ekleme fonksiyonu

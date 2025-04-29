@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import AuthProvider from "@/components/sessionProvider";
 import { DataProvider } from "./context/dataContext";
+import Header from "./components/header";
+import { usePathname } from "next/navigation";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,6 +18,7 @@ const geistMono = Geist_Mono({
 
 
 export default function RootLayout({ children }) {
+  const pathname = usePathname()
   return (
     <html lang="en">
       <body
@@ -23,6 +26,10 @@ export default function RootLayout({ children }) {
       >
         <AuthProvider>
         <DataProvider>
+
+        { pathname !=="/"&&
+          <Header/>
+        }
           {children}
         </DataProvider>
         </AuthProvider>

@@ -12,7 +12,7 @@ export default function Dashboard() {
     };
     useEffect(()=>{
       if(session){
-        router.push("/dashboard")
+        router.push("/aracgiris")
       }
     },[session])
     return(
