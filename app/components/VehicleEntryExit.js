@@ -62,7 +62,7 @@ export default function VehicleEntryExit() {
     let count = 0
     if(snapshot.exists()){
       const summary = snapshot.data().summary
-      count = summary.count;
+      count = summary.maxID;
       setTotalDayVehicle(count)
     }
     
