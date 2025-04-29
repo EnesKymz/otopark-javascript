@@ -7,7 +7,7 @@ import Header from "../components/header";
 export default function Dashboard(){
    
     const { data: session } = useSession();
-    if(process.env.VERCEL_ENV==="production") {
+    if(process.env.NEXT_PUBLIC_VERCEL_ENV==="production") {
         return (
             <div>
             <MaintenancePage/>
