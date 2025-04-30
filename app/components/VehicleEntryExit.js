@@ -5,7 +5,7 @@ import { toast, ToastBar, Toaster } from "react-hot-toast"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import {dbfs} from "@/app/firebase/firebaseConfig";
-import { collection, collectionGroup, deleteDoc, doc, FieldValue, getDoc, getDocs, query, setDoc, updateDoc, where } from "firebase/firestore"
+import { collectionGroup, deleteDoc, doc, getCountFromServer, getDoc, getDocs, query, setDoc, updateDoc, where } from "firebase/firestore"
 import {   
   GridRowModes,
   DataGrid,
@@ -13,7 +13,7 @@ import {
   GridRowEditStopReasons,
   } from '@mui/x-data-grid';
 import { useDataContext } from "../context/dataContext";
-import { Button, Paper } from "@mui/material";
+import { Paper } from "@mui/material";
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
 import SaveIcon from '@mui/icons-material/Save';
@@ -66,13 +66,14 @@ export default function VehicleEntryExit() {
       setTotalDayVehicle(count)
     }
     
-    if((count === vehiclesData.length)){
-      return;
-    }
     const q = query(
       collectionGroup(dbfs,'transactions'),
       where("cikis","==",false)
     );
+    const countCikis = await getCountFromServer(q)
+    if(countCikis.data().count ===vehiclesData.length){
+      return;
+    }
     const querySnapshot = await getDocs(q)
       for(const doc of querySnapshot.docs){
         const StringID = doc.id.replace("autoID","");

@@ -47,6 +47,9 @@ export const DataProvider = ({ children }) => {
       // Plaka kontrolü
       const plateExists = prev.some(v => v.plate === formattedVehicle.plate);
       if (plateExists) {
+        if(vehiclesData.length ===0){
+          return;
+        }
         toast.error('Bu plaka zaten kayıtlı:', formattedVehicle.plate);
         return prev;
       }
