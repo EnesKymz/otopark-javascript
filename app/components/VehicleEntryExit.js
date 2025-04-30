@@ -252,6 +252,7 @@ export default function VehicleEntryExit() {
     
   }
   const ExitVehicle = (id) =>async()=>{
+    console.error(id)
     if(isCikis !==null){
       const selectedVehicle = vehiclesData.find(item =>item.id ===id)
       const createdTime = new Date(selectedVehicle.createdAt)
@@ -277,7 +278,7 @@ export default function VehicleEntryExit() {
       setRecentActivity((prev) => [
         {
           plate: selectedVehicle.plate,
-          action:"çıkış",
+          action:statusPanel,
           time: new Date().toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" }),
         },
         ...prev.slice(0, 3),
@@ -374,6 +375,7 @@ export default function VehicleEntryExit() {
     },
   ];
   const paginationModel = { page: 0, pageSize: 10 };
+  const [statusPanel,setStatusPanel] = useState("giris")
   return (
     <div className="flex flex-col w-full min-h-screen bg-gray-50">
 
@@ -383,6 +385,12 @@ export default function VehicleEntryExit() {
   <div className="flex flex-col md:flex-row gap-6 p-6 max-w-7xl mx-auto w-full">
     {/* Sol Panel - Araç Girişi */}
     <div className="w-full md:w-1/3 bg-white rounded-xl shadow-md p-6">
+    <div className="rounded bg-gray-300 grid grid-cols-2 p-1 mb-4">
+    <button onClick={()=>setStatusPanel("giris")} className={`${statusPanel ==="giris" ? "bg-gray-100" : ""} rounded cursor-pointer`}>Giriş</button>
+    <button onClick={()=>setStatusPanel("cikis")} className={`${statusPanel ==="cikis" ? "bg-gray-100" : ""} rounded cursor-pointer`}>Çıkış</button>
+    </div>
+    {statusPanel ==="giris" ? (
+      <div>
       <h2 className="text-xl font-semibold text-gray-800 mb-4">Araç Girişi</h2>
       
       <div className="space-y-4">
@@ -423,6 +431,50 @@ export default function VehicleEntryExit() {
           </div>
         </div>
       </div>
+      </div>
+    ) : (<div>
+      <h2 className="text-xl font-semibold text-gray-800 mb-4">Araç Çıkışı</h2>
+      
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Plaka</label>
+          <input
+            value={licensePlate}
+            onChange={(value) => handleLicensePlateChange(value)}
+            className={`w-full p-3 border rounded-lg ring-0 focus:outline-none focus:ring-2  ${
+              !isValid && licensePlate ? " focus:ring-red-400 focus:border-red-400" : "focus:ring-indigo-500 focus:border-indigo-500"
+            }`}
+            placeholder="79 ABC 123"
+          />
+        </div>
+
+        <button
+          onClick={ExitVehicle(licensePlate && vehiclesData.find(item =>item.plate ===licensePlate)?.id)}
+          className="w-full bg-red-500 hover:bg-red-700 text-white py-3 px-4 rounded-lg transition-colors"
+        >
+          Çıkış
+        </button>
+
+        <div className="mt-6">
+          <h3 className="font-medium text-gray-700 mb-2">Son İşlemler</h3>
+          <div className="space-y-2 max-h-60 overflow-y-auto">
+            {recentActivity.map((activity, index) => (
+              <div 
+                key={index}
+                className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
+              >
+                <span className="font-medium">{activity.plate}</span>
+                <div className="text-right">
+                  <span className="block text-sm text-indigo-600">{activity.action}</span>
+                  <span className="text-xs text-gray-500">{activity.time}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      </div>)}
+      
     </div>
 
     {/* Sağ Panel - Araç Listesi */}
@@ -459,7 +511,7 @@ export default function VehicleEntryExit() {
           <div className="flex flex-col bg-white bg-opacity-30 w-full h-full border-2 border-indigo-600 rounded-lg p-6 backdrop-blur-sm">
           <div className="flex justify-between">
           <h2 className="text-2xl font-bold text-indigo-700 mb-6">Araç Çıkışı</h2>
-          <button onClick={()=>setIsCikis(null)} className="text-2xl font-bold text-indigo-700 mb-6 p-2  bg-white shadow rounded shadow-gray-400 cursor-pointer">X</button>
+          <button onClick={()=>{setLicensePlate("");setIsCikis(null)}} className="text-2xl font-bold text-indigo-700 mb-6 p-2  bg-white shadow rounded shadow-gray-400 cursor-pointer">X</button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Plaka Alanı */}
