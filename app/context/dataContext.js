@@ -13,7 +13,7 @@ export const DataProvider = ({ children }) => {
     }
     return [];
   });
-
+  const [vehicleIndex,setVehicleIndex] = useState(0)
   const [totalDayVehicle, setTotalDayVehicle] = useState(0);
   // Verileri localStorage'a kaydediyoruz
   useEffect(() => {
@@ -42,18 +42,24 @@ export const DataProvider = ({ children }) => {
       price: newVehicle.price || 50,
       createdAt: newVehicle.createdAt
     };
-
+    
     setVehiclesData(prev => {
       // Plaka kontrolü
-      const plateExists = prev.some(v => v.plate === formattedVehicle.plate);
+      const plateExists = prev?.some(v => v.plate === formattedVehicle.plate);
       if (plateExists) {
-        if(vehiclesData.length ===0){
+        if(vehiclesData.length === 0){
           return;
         }
         toast.error('Bu plaka zaten kayıtlı:', formattedVehicle.plate);
         return prev;
+      }else{
+        if(prev){
+          return [...prev,formattedVehicle];
+        }else{
+          return [formattedVehicle]
+        }
       }
-      return [...prev, formattedVehicle];
+     
     });
 
     return true;
@@ -73,6 +79,8 @@ export const DataProvider = ({ children }) => {
   const contextValue = {
     vehiclesData,
     totalDayVehicle,
+    vehicleIndex,
+    setVehicleIndex,
     addVehicle,
     updateVehicle,
     setTotalDayVehicle,
