@@ -5,14 +5,9 @@ import toast from 'react-hot-toast';
 const DataContext = createContext();
 
 export const DataProvider = ({ children }) => {
+  const [savedEmail,setSavedEmail] = useState()
   // State'leri localStorage ile senkronize ediyoruz
-  const [vehiclesData, setVehiclesData] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('vehiclesData');
-      return saved ? JSON.parse(saved) : [];
-    }
-    return [];
-  });
+  const [vehiclesData, setVehiclesData] = useState();
   const [vehicleIndex,setVehicleIndex] = useState(0)
   const [totalDayVehicle, setTotalDayVehicle] = useState(0);
   // Verileri localStorage'a kaydediyoruz
@@ -21,7 +16,7 @@ export const DataProvider = ({ children }) => {
       localStorage.setItem('vehiclesData', JSON.stringify(vehiclesData));
       // Günlük araç sayısını güncelle
       const today = new Date().toISOString().split('T')[0];
-      const todayVehicles = vehiclesData.filter(vehicle => 
+      const todayVehicles = vehiclesData?.filter(vehicle => 
         vehicle.time && vehicle.time.includes(today)
       );
     }
@@ -47,7 +42,7 @@ export const DataProvider = ({ children }) => {
       // Plaka kontrolü
       const plateExists = prev?.some(v => v.plate === formattedVehicle.plate);
       if (plateExists) {
-        if(vehiclesData.length === 0){
+        if(vehiclesData?.length === 0){
           return;
         }
         toast.error('Bu plaka zaten kayıtlı:', formattedVehicle.plate);
@@ -85,6 +80,8 @@ export const DataProvider = ({ children }) => {
     updateVehicle,
     setTotalDayVehicle,
     removeVehicle,
+    savedEmail,
+    setSavedEmail,
     // setVehiclesData ve setTotalDayVehicle'i dışarı açmak istemiyorsanız kaldırabilirsiniz
   };
 

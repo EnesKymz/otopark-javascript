@@ -5,7 +5,7 @@ import { toast, ToastBar, Toaster } from "react-hot-toast"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import {dbfs} from "@/app/firebase/firebaseConfig";
-import { collectionGroup, deleteDoc, doc, getCountFromServer, getDoc, getDocs, query, setDoc, updateDoc, where } from "firebase/firestore"
+import { collection, collectionGroup, deleteDoc, doc, getCountFromServer, getDoc, getDocs, query, setDoc, updateDoc, where } from "firebase/firestore"
 import {   
   GridRowModes,
   DataGrid,
@@ -26,7 +26,16 @@ export default function VehicleEntryExit() {
   const [licensePlate, setLicensePlate] = useState("")
   const [isValid, setIsValid] = useState(true)
   const [recentActivity, setRecentActivity] = useState([])
-  const {vehiclesData,totalDayVehicle,setTotalDayVehicle,addVehicle,updateVehicle,removeVehicle,vehicleIndex,setVehicleIndex} = useDataContext()
+  const {
+    vehiclesData,
+    totalDayVehicle,
+    setTotalDayVehicle,
+    addVehicle,updateVehicle,
+    removeVehicle,vehicleIndex,
+    setVehicleIndex,
+    savedEmail,
+    setSavedEmail
+  } = useDataContext()
   const [rowModesModel, setRowModesModel] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [isCikis,setIsCikis] = useState(null)
@@ -53,7 +62,19 @@ export default function VehicleEntryExit() {
     if(!email){
       return;
     }
+    if(email !== savedEmail){
+      setVehicleIndex(0)
+      setTotalDayVehicle(0)
+      setRowModesModel({})
+      if(vehiclesData && vehiclesData.length > 0){
+        for(const vehicle of vehiclesData){
+          removeVehicle(vehicle.id)
+          }
+      }
+      
+    }
     const encodeMail = email.replace(/\./g, '_dot_').replace('@','_q_');
+    setSavedEmail(encodeMail)
     setEncodedEmail(encodeMail);
     const date = getTurkeyDate()
     const [year,month,day] = date.split("-")
@@ -67,12 +88,13 @@ export default function VehicleEntryExit() {
     }
     
     const q = query(
-      collectionGroup(dbfs,'transactions'),
-      where("cikis","==",false)
+      collectionGroup(dbfs,`transactions`),
+      where("cikis","==",false),
+      where("userEmail","==",encodeMail),
     );
     const countCikis = await getCountFromServer(q)
     setTotalDayVehicle(countCikis.data().count)
-    if(countCikis.data().count === vehiclesData?.length){
+    if(vehiclesData && (countCikis.data().count === vehiclesData?.length)){
       return;
     }
     const querySnapshot = await getDocs(q)
@@ -192,7 +214,6 @@ export default function VehicleEntryExit() {
       toast.error("Geçersiz plaka numarası!")
       return
     }
-    const maxID = vehiclesData.length > 0 ? Math.max(...vehiclesData.map(item =>item.id))+1 : 1
     
       const formatter = new Intl.DateTimeFormat("tr-TR", {
         timeZone: "Europe/Istanbul",
@@ -214,11 +235,10 @@ export default function VehicleEntryExit() {
       }
       const encodedEmail = email.replace(/\./g, '_dot_').replace('@','_q_');
       const userRef = doc(dbfs,`admins/${encodedEmail}/years/year_${year}/daily_payments/${date}/transactions/autoID${vehicleIndex}`);
-      const summaryRef = doc(dbfs,`admins/${encodedEmail}/years/year_${year}/daily_payments/${date}`);
-      const indexRef = doc(dbfs,`admins/${encodedEmail}`)
+      const summaryRef = doc(dbfs,`admins/${encodedEmail}`);
       const summarySnapshot = await getDoc(summaryRef);
-      const summaryData = summarySnapshot.data()
-      const maxIdDB = summaryData?.summary.maxID || 0
+      const indexDB = summarySnapshot.data()
+      const maxIdDB = indexDB.index || 0
      setDoc(userRef,{
       details:{
         plate:licensePlate,
@@ -226,10 +246,11 @@ export default function VehicleEntryExit() {
         price:50,
         createdAt:utcFormat
       },
+      userEmail:encodedEmail,
       cikis:false,
      });
-     setTotalDayVehicle(maxIdDB+1)
-     setVehicleIndex(vehicleIndex+1)
+     setTotalDayVehicle(totalDayVehicle+1)
+     setVehicleIndex(maxIdDB+1)
      addVehicle({
       id:maxIdDB+1,
       plate:licensePlate,
@@ -237,14 +258,8 @@ export default function VehicleEntryExit() {
       price:50,
       createdAt:utcFormat,})
      setDoc(summaryRef,{
-      summary:{
-        count:vehiclesData.length+1,
-        maxID:maxIdDB+1
-      }
+      index:maxIdDB+1,
      },{merge:true})
-    setDoc(indexRef, {
-        index:vehicleIndex+1
-      })
     toast.success(`${licensePlate} plakalı araç girişi yapıldı.`)
     setRecentActivity((prev) => [
       {
@@ -275,13 +290,6 @@ export default function VehicleEntryExit() {
         cikis:true,
       },{merge:true})
       const date = getTurkeyDate()
-      const summaryRef = doc(dbfs,`admins/${encodedEmail}/years/year_${year}/daily_payments/${date}`);
-      const summarySnapshot = await getDoc(summaryRef);
-      const summaryData = summarySnapshot.data()
-      const count = summaryData?.summary.count || 0
-      updateDoc(summaryRef,{
-        "summary.count":count-1
-       },{merge:true})
       removeVehicle(selectedVehicle.id)
       setIsCikis(null)
       setRecentActivity((prev) => [
@@ -293,6 +301,7 @@ export default function VehicleEntryExit() {
         ...prev.slice(0, 3),
       ]);
       toast.success(`${selectedVehicle.plate} plakalı aracın çıkışı yapıldı`)
+      setTotalDayVehicle(totalDayVehicle-1)
     }else{
       const cikisTarih = new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Istanbul"})).toISOString().slice(0,16)
       setIsCikis(prev => ({
