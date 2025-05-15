@@ -93,8 +93,11 @@ export default function VehicleEntryExit() {
       where("userEmail","==",encodeMail),
     );
     const countCikis = await getCountFromServer(q)
-    setTotalDayVehicle(countCikis.data().count)
-    if(vehiclesData && (countCikis.data().count === vehiclesData?.length)){
+    const summaryRef2 = collection(dbfs, `admins/${encodeMail}/years/year_${year}/daily_payments/${date}/transactions`);
+    const sumsnapshot = await getDocs(summaryRef2);
+    const sum = sumsnapshot.size || 0;
+    setTotalDayVehicle(sum)
+    if(countCikis>0&&vehiclesData && (countCikis.data().count === vehiclesData?.length)){
       return;
     }
     const querySnapshot = await getDocs(q)
@@ -289,8 +292,7 @@ export default function VehicleEntryExit() {
       setDoc(vehicleRef,{
         cikis:true,
       },{merge:true})
-      const date = getTurkeyDate()
-      removeVehicle(selectedVehicle.id)
+        removeVehicle(selectedVehicle.id)
       setIsCikis(null)
       setRecentActivity((prev) => [
         {
@@ -301,7 +303,6 @@ export default function VehicleEntryExit() {
         ...prev.slice(0, 3),
       ]);
       toast.success(`${selectedVehicle.plate} plakalı aracın çıkışı yapıldı`)
-      setTotalDayVehicle(totalDayVehicle-1)
     }else{
       const cikisTarih = new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Istanbul"})).toISOString().slice(0,16)
       setIsCikis(prev => ({

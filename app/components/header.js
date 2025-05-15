@@ -2,17 +2,34 @@
 import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
-export default function Header() {
-    const [tab,setTab] = useState("arac");
+export default function Header({setClickedTab}) {
+    const [tab,setTab] = useState("aracgiris");
     const [profileMenu,setProfileMenu] = useState(false);
     const {data:session} = useSession();
+    const pathname = usePathname()
+    const hideTab = () => setClickedTab(false)
+    const showTab = () => setClickedTab(true)
     useEffect(()=>{
         if(!session){
             window.location.href="/"
         }
     },[session])
+    useEffect(()=>{
+      try{
+      showTab()
+      setTab(pathname.split("/")[1]);
+      }catch(e){
+        console.error(e)
+      }
+    },[pathname])
+    const handleTabClick = (tabName) => ()=>{
+      if(("/"+tabName) ===pathname) return
+      hideTab();
+      setTab(tabName);
+    }
     return (
         <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-lg border-b border-gray-100 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -33,7 +50,7 @@ export default function Header() {
               
               <nav className="hidden md:flex items-center space-x-6">
                 <Link 
-                onClick={()=>setTab("anasayfa")}
+                onClick={handleTabClick("anasayfa")}
                   href="/anasayfa" 
                   className={`pb-1 px-1 font-medium transition-colors ${
                     tab === "anasayfa" 
@@ -44,10 +61,10 @@ export default function Header() {
                   Ana Sayfa
                 </Link>
                 <Link
-                onClick={()=>setTab("arac")}
+                onClick={handleTabClick("aracgiris")}
                   href="/aracgiris"
                   className={`pb-1 px-1 font-medium transition-colors ${
-                    tab === "arac" 
+                    tab === "aracgiris" 
                       ? "text-indigo-600 border-b-2 border-indigo-600" 
                       : "text-gray-500 hover:text-indigo-500"
                   }`}
@@ -55,10 +72,10 @@ export default function Header() {
                   Araç Girişi
                 </Link>
                 <Link
-                onClick={()=>setTab("abone")}
+                onClick={handleTabClick("aboneyonetimi")}
                   href="/aboneyonetimi"
                   className={`pb-1 px-1 font-medium transition-colors ${
-                    tab === "abone" 
+                    tab === "aboneyonetimi" 
                       ? "text-indigo-600 border-b-2 border-indigo-600" 
                       : "text-gray-500 hover:text-indigo-500"
                   }`}

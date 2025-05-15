@@ -5,6 +5,8 @@ import AuthProvider from "@/components/sessionProvider";
 import { DataProvider } from "./context/dataContext";
 import Header from "./components/header";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
+import Loader from "./components/animations/loader";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,6 +21,7 @@ const geistMono = Geist_Mono({
 
 export default function RootLayout({ children }) {
   const pathname = usePathname()
+  const [clickedTab,setClickedTab] = useState(true)
   return (
     <html lang="en">
       <body
@@ -28,9 +31,10 @@ export default function RootLayout({ children }) {
         <DataProvider>
 
         { pathname !=="/"&&
-          <Header/>
+          <Header setClickedTab={setClickedTab}/>
         }
-          {children}
+        
+          {clickedTab ? children : <Loader/>}
         </DataProvider>
         </AuthProvider>
       </body>
