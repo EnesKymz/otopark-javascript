@@ -20,6 +20,7 @@ import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Close';
 import AddTaskIcon from '@mui/icons-material/AddTask';
 import { MoonLoader } from "react-spinners"
+import Loader from "./animations/loader"
 export default function VehicleEntryExit() {
   const {data: session,status} = useSession();
   const router = useRouter()
@@ -105,6 +106,14 @@ export default function VehicleEntryExit() {
         const StringID = doc.id.replace("autoID","");
         const numberID = Number(StringID)
         addVehicle({id:numberID,...doc.data().details})
+        setRecentActivity((prev) => [
+        {
+          plate: doc.data().details.plate,
+          action:"giriş",
+          time: new Date(doc.data().details.joinDate).toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" }),
+        },
+        ...prev.slice(0, 3),
+      ]);
       }
     }catch(error){
       console.error(error.message)
@@ -242,23 +251,24 @@ export default function VehicleEntryExit() {
       const summarySnapshot = await getDoc(summaryRef);
       const indexDB = summarySnapshot.data()
       const maxIdDB = indexDB.index || 0
+      const vehicleEntryPrice = indexDB.vehicleEntryPrice
      setDoc(userRef,{
       details:{
         plate:licensePlate,
         joinDate:utcFormat,
-        price:50,
+        price:vehicleEntryPrice,
         createdAt:utcFormat
       },
       userEmail:encodedEmail,
       cikis:false,
      });
      setTotalDayVehicle(totalDayVehicle+1)
-     setVehicleIndex(maxIdDB+1)
+     setVehicleIndex(maxIdDB)
      addVehicle({
-      id:maxIdDB+1,
+      id:maxIdDB,
       plate:licensePlate,
       joinDate:utcFormat,
-      price:50,
+      price:vehicleEntryPrice,
       createdAt:utcFormat,})
      setDoc(summaryRef,{
       index:maxIdDB+1,
@@ -275,7 +285,7 @@ export default function VehicleEntryExit() {
     setLicensePlate("");
     
   }
-  const ExitVehicle = (id) =>async()=>{
+  const ExitVehicle = (id) =>async()=>{ 
     if(!id){
       toast.error("Geçersiz plaka değeri")
       return;
@@ -289,15 +299,19 @@ export default function VehicleEntryExit() {
         createdTime.getDate().toString().padStart(2, '0')
       ];
       const vehicleRef = doc(dbfs,`admins/${encodedEmail}/years/year_${year}/daily_payments/${year}-${month}-${day}/transactions/autoID${isCikis.id}`)
-      setDoc(vehicleRef,{
+      updateDoc(vehicleRef,{
+        details:{
+        ...selectedVehicle,
+        price:selectedVehicle.price,
+        },
         cikis:true,
-      },{merge:true})
+      })
         removeVehicle(selectedVehicle.id)
       setIsCikis(null)
       setRecentActivity((prev) => [
         {
           plate: selectedVehicle.plate,
-          action:statusPanel,
+          action:"cikis",
           time: new Date().toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" }),
         },
         ...prev.slice(0, 3),
@@ -309,6 +323,40 @@ export default function VehicleEntryExit() {
         ...vehiclesData.find(item => item.id === id),
         cikisTarih: cikisTarih
       }));
+    }
+  }
+  const [newPrice,setNewPrice] = useState("")
+  const handlePriceChange = (e) => {
+    const value = Number(e.target.value)
+    value >=0 && setNewPrice(value)
+
+  }
+  const handlePriceUpdate = async(value) => {
+    try{
+      const price = Number(value)
+      if(!price || price<=0) return toast.error("Lütfen geçerli ücret giriniz.");
+      const valueRef = doc(dbfs,"admins",savedEmail)
+      setDoc(valueRef,{
+        vehicleEntryPrice:price
+      },{merge:true})
+    }catch(e){
+      toast.error("Ücret güncellenemedi")
+    }finally{
+      toast.success("Ücret başarıyla güncellendi");
+      setNewPrice(0);
+      setStatusPanel("giris")
+
+    }
+    
+  }
+  const recentActivityExit =(action,plate)=>{
+    if(action.toString() === "giriş") {
+      const vehicleId = vehiclesData.find(item => item.plate === plate)?.id;
+      if (vehicleId !== undefined) {
+        ExitVehicle(vehicleId)();
+      }else{
+        toast.error("Araç çıkışı yapılmış.")
+      }
     }
   }
   const columns = [
@@ -337,7 +385,13 @@ export default function VehicleEntryExit() {
     {
       field: 'price',
       headerName: 'Ücret',
-      type: 'string',
+      type: 'number',
+      valueFormatter: (value) => {
+      if (!value || typeof value !== 'number') {
+        return value;
+      }
+      return `${value.toLocaleString()} ₺`;
+      },
       width: 90,
       editable:true,
     },
@@ -395,6 +449,28 @@ export default function VehicleEntryExit() {
   ];
   const paginationModel = { page: 0, pageSize: 10 };
   const [statusPanel,setStatusPanel] = useState("giris")
+  const RecentActivity =()=>{
+    return(
+      <div className="mt-6">
+        <div className="space-y-2 max-h-60 overflow-y-auto"></div>
+          <h3 className="font-medium text-gray-700 mb-2 hover:text-indigo-500 select-none">Son İşlemler</h3>
+            {recentActivity.map((activity, index) => (
+              <div 
+                key={index}
+                onClick={()=>recentActivityExit(activity.action,activity.plate)}
+                className="flex select-none justify-between items-center p-3 cursor-pointer bg-gray-50 rounded-lg my-2 border border-gray-400"
+              >
+                <span className="font-medium">{activity.plate}</span>
+                <div className="text-right">
+                  <span className={`block text-sm ${activity.action==="giriş" ? "text-indigo-500" : "text-red-500"}`}>{activity.action}</span>
+                  <span className="text-xs text-gray-500">{activity.time}</span>
+                </div>
+              </div>
+              )
+            )}
+    </div>
+    )
+  }
   return (
     <div className="flex flex-col w-full min-h-screen bg-gray-50">
 
@@ -408,6 +484,7 @@ export default function VehicleEntryExit() {
     <button onClick={()=>setStatusPanel("giris")} className={`${statusPanel ==="giris" ? "bg-gray-100" : ""} rounded cursor-pointer`}>Giriş</button>
     <button onClick={()=>setStatusPanel("cikis")} className={`${statusPanel ==="cikis" ? "bg-gray-100" : ""} rounded cursor-pointer`}>Çıkış</button>
     </div>
+
     {statusPanel ==="giris" ? (
       <div>
       <h2 className="text-xl font-semibold text-gray-800 mb-4">Araç Girişi</h2>
@@ -424,7 +501,11 @@ export default function VehicleEntryExit() {
             placeholder="79 ABC 123"
           />
         </div>
-
+        <div className="flex justify-end">
+          <button onClick={()=>setStatusPanel("ucretdegisikligi")} className="space-x-4 cursor-pointer rounded-4xl shadow shadow-gray-300 transition-colors hover:text-indigo-600 p-1.5">
+            Ücret Değişikliği
+          </button>
+        </div>
         <button
           onClick={() => handleAction()}
           className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-4 rounded-lg transition-colors"
@@ -432,26 +513,12 @@ export default function VehicleEntryExit() {
           Ekle
         </button>
 
-        <div className="mt-6">
-          <h3 className="font-medium text-gray-700 mb-2">Son İşlemler</h3>
-          <div className="space-y-2 max-h-60 overflow-y-auto">
-            {recentActivity.map((activity, index) => (
-              <div 
-                key={index}
-                className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
-              >
-                <span className="font-medium">{activity.plate}</span>
-                <div className="text-right">
-                  <span className="block text-sm text-indigo-600">{activity.action}</span>
-                  <span className="text-xs text-gray-500">{activity.time}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+      <RecentActivity/>
       </div>
       </div>
-    ) : (<div>
+    ) 
+    :statusPanel === "cikis"? (
+    <div>
       <h2 className="text-xl font-semibold text-gray-800 mb-4">Araç Çıkışı</h2>
       
       <div className="space-y-4">
@@ -473,26 +540,38 @@ export default function VehicleEntryExit() {
         >
           Çıkış
         </button>
-
-        <div className="mt-6">
-          <h3 className="font-medium text-gray-700 mb-2">Son İşlemler</h3>
-          <div className="space-y-2 max-h-60 overflow-y-auto">
-            {recentActivity.map((activity, index) => (
-              <div 
-                key={index}
-                className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
-              >
-                <span className="font-medium">{activity.plate}</span>
-                <div className="text-right">
-                  <span className="block text-sm text-indigo-600">{activity.action}</span>
-                  <span className="text-xs text-gray-500">{activity.time}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <RecentActivity/>
       </div>
-      </div>)}
+      </div>
+    ):statusPanel ==="ucretdegisikligi" ?(
+      <div>
+      <h2 className="text-xl font-semibold text-gray-800 mb-4">Ücret Değişikliği</h2>
+      
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Ücret giriniz</label>
+          <input
+            value={newPrice}
+            onChange={(value) => handlePriceChange(value)}
+            type="number"
+
+            className={`w-full p-3 border rounded-lg ring-0 focus:outline-none focus:ring-2  ${
+               newPrice && Number(newPrice) <= 0 ? " focus:ring-red-400 focus:border-red-400" : "focus:ring-indigo-500 focus:border-indigo-500"
+            }`}
+            placeholder="52.5, 54.30, 100..."
+          />
+        </div>
+
+        <button
+          onClick={()=>handlePriceUpdate(newPrice)}
+          className="w-full bg-indigo-500 hover:bg-indigo-700 text-white py-3 px-4 rounded-lg transition-colors"
+        >
+          Kaydet
+        </button>
+        <RecentActivity/>
+      </div>
+      </div>
+    ):(<Loader/>)}
       
     </div>
 

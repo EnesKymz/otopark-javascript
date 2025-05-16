@@ -29,12 +29,16 @@ export const DataProvider = ({ children }) => {
     }
     const ID = Number(newVehicle.id)
     const date = newVehicle.joinDate;
+    const vehicleTime = new Date(newVehicle.joinDate)
+    const currentTime = new Date();
+    const timeDiff = (currentTime.getTime() - vehicleTime.getTime());
+    const timeDiffInDays = Math.round(timeDiff / (1000 * 3600 * 24))+1;
     const formattedVehicle = {
       ...newVehicle,
       id: ID,
       plate: newVehicle.plate,
       joinDate: date,
-      price: newVehicle.price || 50,
+      price: newVehicle.price * timeDiffInDays || 50,
       createdAt: newVehicle.createdAt
     };
     
