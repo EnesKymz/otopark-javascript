@@ -462,7 +462,7 @@ export default function VehicleEntryExit() {
                 onClick={()=>recentActivityExit(activity.action,activity.plate)}
                 className="flex select-none justify-between items-center p-3 cursor-pointer bg-gray-50 rounded-lg my-2 border border-gray-400"
               >
-                <span className="font-medium">{activity.plate}</span>
+                <span className="font-medium text-black">{activity.plate}</span>
                 <div className="text-right">
                   <span className={`block text-sm ${activity.action==="giriş" ? "text-indigo-500" : "text-red-500"}`}>{activity.action}</span>
                   <span className="text-xs text-gray-500">{activity.time}</span>
@@ -483,8 +483,8 @@ export default function VehicleEntryExit() {
     {/* Sol Panel - Araç Girişi */}
     <div className="w-full md:w-1/3 bg-white rounded-xl shadow-md p-6">
     <div className="rounded bg-gray-300 grid grid-cols-2 p-1 mb-4">
-    <button onClick={()=>setStatusPanel("giris")} className={`${statusPanel ==="giris" ? "bg-gray-100" : ""} rounded cursor-pointer`}>Giriş</button>
-    <button onClick={()=>setStatusPanel("cikis")} className={`${statusPanel ==="cikis" ? "bg-gray-100" : ""} rounded cursor-pointer`}>Çıkış</button>
+    <button onClick={()=>setStatusPanel("giris")} className={`${statusPanel ==="giris" ? "bg-gray-100 text-black" : ""} rounded cursor-pointer`}>Giriş</button>
+    <button onClick={()=>setStatusPanel("cikis")} className={`${statusPanel ==="cikis" ? "bg-gray-100 text-black" : ""} rounded cursor-pointer`}>Çıkış</button>
     </div>
 
     {statusPanel ==="giris" ? (
@@ -504,7 +504,7 @@ export default function VehicleEntryExit() {
           />
         </div>
         <div className="flex justify-end">
-          <button onClick={()=>setStatusPanel("ucretdegisikligi")} className="space-x-4 cursor-pointer rounded-4xl shadow shadow-gray-300 transition-colors hover:text-indigo-600 p-1.5">
+          <button onClick={()=>setStatusPanel("ucretdegisikligi")} className="space-x-4 cursor-pointer rounded-4xl text-black shadow shadow-gray-300 transition-colors hover:text-indigo-600 p-1.5">
             Ücret Değişikliği
           </button>
         </div>
