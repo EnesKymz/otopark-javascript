@@ -4,7 +4,7 @@ import { forwardRef, useEffect, useState } from "react"
 import { toast, ToastBar, Toaster } from "react-hot-toast"
 import { useSession } from "next-auth/react"
 import {dbfs} from "@/app/firebase/firebaseConfig";
-import { collection, deleteDoc, doc, getCountFromServer, getDoc, getDocs, query, setDoc, updateDoc, where } from "firebase/firestore"
+import { collection, deleteDoc, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from "firebase/firestore"
 import {   
   GridRowModes,
   DataGrid,
@@ -47,7 +47,8 @@ export default function SubscriptionManage() {
     subscribeData,
     totalDaySub,
     setTotalDaySub,
-    removeSubscriber
+    removeSubscriber,
+    updateSubscriber
   } = useSubContext()
   const {data: session,status} = useSession();
   const [subscriber, setSubscriber] = useState("")
@@ -131,30 +132,24 @@ export default function SubscriptionManage() {
   };
 
   const handleDeleteClick = (id) => () => {
-    if (confirm("Bu aracı silmek istediğinize emin misiniz?")) {
+    if (confirm("Bu kişiyi silmek istediğinize emin misiniz?")) {
     removeSubscriber(id)
     const email = session?.user?.email
     if(!email){
       return;
     }
-    const vehicle = subsr.find(item =>item.id ===id)
-    const createdTime = new Date(vehicle.createdAt)
+    const subscriber = subsr.find(item =>item.id ===id)
+    const createdTime = new Date(subscriber.createdAt)
     if(!createdTime){
       toast.error("Tarih bulunamadı veya hatalı")
       return;
     }
-    const createdYear = createdTime.getFullYear()
     const encodedEmail = email.replace(/\./g, '_dot_').replace('@','_q_');
-    const date= getTurkeyDate()
-    const plateRef = doc(dbfs,`admins/${encodedEmail}/years/year_${createdYear}/daily_payments/${date}/transactions/autoID${id}`)
-    deleteDoc(plateRef)
+    const subRef = doc(dbfs,`admins/${encodedEmail}/subscriptions/sub${id}`)
+    deleteDoc(subRef)
     const newTotal = totalDayVehicle-1
     setTotalDaySub(newTotal)
-    const summaryRef = doc(dbfs,`admins/${encodedEmail}/years/year_${createdYear}/daily_payments/${date}`);
-    updateDoc(summaryRef,{
-        "summary.count":newTotal
-    })
-    toast.success(`${id} numaralı araç başarıyla silindi.`)
+    toast.success(`${id} numaralı abone başarıyla silindi.`)
     }
   };
 
@@ -172,26 +167,25 @@ export default function SubscriptionManage() {
 
   const processRowUpdate = (newRow) => {
    const updatedRow = { ...newRow, isNew: false };
-   if(!newRow.id||!newRow.plate||!newRow.price||!newRow.joinDate){
+   if(!newRow.id||!newRow.namesurname||!newRow.price||!newRow.joinDate){
     !newRow.id && toast.error("ID değeri boş bırakılamaz")
-    !newRow.plate && toast.error("Plaka değeri boş bırakılamaz")
+    !newRow.namesurname && toast.error("İsim - Soyisim değeri boş bırakılamaz")
     !newRow.joinDate && toast.error("Tarih değeri boş bırakılamaz")
     !newRow.price && toast.error("Ücret değeri boş bırakılamaz")
     return;
    }
-    updateVehicle(newRow.id,newRow);
+    updateSubscriber(newRow.id,newRow);
     const email = session?.user?.email
       if(!email){
         return;
       }
       const encodedEmail = email.replace(/\./g, '_dot_').replace('@','_q_');
-      const date= getTurkeyDate()
-      const [year,month,day] = date.split("-")
-      const stringTime = JSON.stringify(newRow.joinDate)
-    const plateRef = doc(dbfs,`admins/${encodedEmail}/years/year_${year}/daily_payments/${date}/transactions/autoID${newRow.id}`)
+      const newDate = new Date(new Date(newRow.joinDate).toLocaleString("en-US", { timeZone: "Europe/Istanbul" }));
+      const stringTime = newDate.toISOString();
+    const plateRef = doc(dbfs,`admins/${encodedEmail}/subscriptions/sub${newRow.id}`)
     
     updateDoc(plateRef,{
-        "details.plate":newRow.plate,
+        "details.namesurname":newRow.namesurname,
         "details.joinDate":stringTime,
         "details.price":newRow.price,
     },{merge:true})
@@ -199,7 +193,7 @@ export default function SubscriptionManage() {
   };
 
   const handleRowModesModelChange = (newRowModesModel) => {
-    setRowModesModel(newRowModesModel);
+      setRowModesModel(newRowModesModel);
   };
   const subscribtionDetailAdd = (e) => {
     if(e.subscriber){
@@ -236,7 +230,6 @@ export default function SubscriptionManage() {
       const nowInTurkey = new Date(new Date(dateValue).toLocaleString("en-US"));
       const utcFormat = nowInTurkey.toISOString();
       const [day, month, yearandtime] = formatter.format(new Date()).split(".");
-      const [year, time] = yearandtime.trim().split(" ");
       const email = session?.user?.email
       if(!email){
         return;
@@ -546,7 +539,7 @@ export default function SubscriptionManage() {
               processRowUpdate={processRowUpdate}
               pageSizeOptions={[5, 10,100]}
               sx={{ border: 0 }}
-              onProcessRowUpdateError={(error) => console.error(error)}
+              onProcessRowUpdateError={(error) => {console.error("Error:",error)}}
               
               />
           {isCikis && (

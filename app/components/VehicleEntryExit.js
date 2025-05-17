@@ -195,13 +195,13 @@ export default function VehicleEntryExit() {
       const date = new Date(createdAt)
       const formattedDate = date.toISOString().slice(0,10)
       const [year,month,day] = formattedDate.split("-")
-      const stringTime = JSON.stringify(newRow.joinDate)
+      const newDate = new Date(new Date(newRow.joinDate).toLocaleString("en-US", { timeZone: "Europe/Istanbul" }));
+      const stringTime = newDate.toISOString();
     const plateRef = doc(dbfs,`admins/${encodedEmail}/years/year_${year}/daily_payments/${formattedDate}/transactions/autoID${newRow.id}`)
     
     updateDoc(plateRef,{
         "details.plate":newRow.plate,
         "details.joinDate":stringTime,
-        "details.price":newRow.price,
     },{merge:true})
     return updatedRow;
   };
@@ -395,7 +395,6 @@ export default function VehicleEntryExit() {
       return `${value.toLocaleString()} ₺`;
       },
       width: 90,
-      editable:true,
     },
     {
       field: 'actions',

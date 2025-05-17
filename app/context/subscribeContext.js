@@ -53,7 +53,7 @@ export const SubscribeProvider = ({ children }) => {
   // Araç güncelleme
   const updateSubscriber = useCallback((id, updatedData) => {
     setSubscriberData(prev => prev.map(subscriber => 
-      subscriber.id === id ? { ...subscribeData, ...updatedData } : subscribeData
+      subscriber.id === id ? { ...subscriber, ...updatedData } : subscriber
     ));
   }, []);
   const removeSubscriber = useCallback((id) => {
