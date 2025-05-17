@@ -137,12 +137,10 @@ export default function Header({setClickedTab}) {
             {/* Sol Taraf - Navigasyon */}
             {device&&device==="mobile"&&(
               <div onClick={()=>setMobileMenu(!mobileMenu)} className="flex items-center space-x-8">
-              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24">
-                <rect width="24" height="24" fill="none" />
-                <g class="menu-outline">
-                  <path fill="#1a00ff" fill-rule="evenodd" d="M3 7a1 1 0 0 1 1-1h16a1 1 0 1 1 0 2H4a1 1 0 0 1-1-1m0 5a1 1 0 0 1 1-1h16a1 1 0 1 1 0 2H4a1 1 0 0 1-1-1m0 5a1 1 0 0 1 1-1h16a1 1 0 1 1 0 2H4a1 1 0 0 1-1-1" class="Vector 38 (Stroke)" clip-rule="evenodd" />
-                </g>
-              </svg>  
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 16 16">
+                <rect width="16" height="16" fill="none" />
+                <path fill="#0053ff" stroke="#0053ff" stroke-linecap="round" stroke-width="2" d="M2 4h12M2 8h12M2 12h12" />
+              </svg>
             </div>
             )}
             <div className="flex items-center space-x-8">
