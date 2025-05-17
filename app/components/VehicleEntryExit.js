@@ -487,7 +487,7 @@ export default function VehicleEntryExit() {
     </div>
 
     {statusPanel ==="giris" ? (
-      <div>
+      <div className="overflow-x-auto h-110">
       <h2 className="text-xl font-semibold text-gray-800 mb-4">Araç Girişi</h2>
       
       <div className="space-y-4">
@@ -519,7 +519,7 @@ export default function VehicleEntryExit() {
       </div>
     ) 
     :statusPanel === "cikis"? (
-    <div>
+    <div className="overflow-x-auto h-110">
       <h2 className="text-xl font-semibold text-gray-800 mb-4">Araç Çıkışı</h2>
       
       <div className="space-y-4">
@@ -591,7 +591,7 @@ export default function VehicleEntryExit() {
         <div className="overflow-x-auto">
         { !isLoading ? (
           <div className="flex justify-between">
-          <Paper className="flex select-none" sx={{ height: '100%', width: '100%' }}>
+          <Paper className="flex select-none" sx={{height:'30rem', width: '100%' }}>
             <DataGrid
               rows={vehiclesData}
               columns={columns}

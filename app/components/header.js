@@ -37,7 +37,7 @@ export default function Header({setClickedTab}) {
     useEffect(()=>{
       const getSubData =async()=>{
       const checkDevice = await deviceTypeDetector()
-      setDevice("mobile")
+      setDevice(checkDevice)
       if(session){
         const email = session.user.email
         const encodeMail = email.replace(/\./g, '_dot_').replace('@','_q_');
@@ -287,7 +287,7 @@ export default function Header({setClickedTab}) {
         {/* Progress Bar */}
         <div className="h-0.5 bg-gradient-to-r from-indigo-500 to-purple-500"></div>
         {mobileMenu && device === "mobile" && (
-        <div ref={panelRef} className="w-48 absolute h-screen bg-white shadow-md shadow-gray-300 rounded z-0">
+        <div ref={panelRef} className="w-1/2 absolute h-screen bg-white shadow-md shadow-gray-300 rounded z-0">
           <div className="flex flex-col p-4 space-y-2">
             {[
               { href: "/anasayfa", label: "Ana Sayfa", key: "anasayfa" },

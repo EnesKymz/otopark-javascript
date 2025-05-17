@@ -209,8 +209,11 @@ export default function SubscriptionManage() {
         setDateValue(value)
     }
     if(e.price){
-        const value = e.price.target.value
-        setPrice(value)
+        const value = e.price.target ? e.price.target.value : e.price;
+        // Sadece rakamları al, harf girilirse mevcut değeri koruma
+        if (/^\d*$/.test(value)) {
+          setPrice(value);
+        }
     }
     if(e.phoneNumber){
       const value = e.price.target.value
@@ -218,6 +221,10 @@ export default function SubscriptionManage() {
     }
   }
   const handleAction = async() => {    
+      if(!subscriber) return toast.error("Lütfen isim - soyisim giriniz")
+      if(!phoneNumber) return toast.error("Lütfen geçerli bir telefon numarası giriniz")
+      if(!price||price<=0) return toast.error("Lütfen geçerli bir ücret giriniz")
+      if(!dateValue) return toast.error("Lütfen geçerli bir tarih giriniz")
       const formatter = new Intl.DateTimeFormat("tr-TR", {
         timeZone: "Europe/Istanbul",
         day: "2-digit",
@@ -446,10 +453,10 @@ export default function SubscriptionManage() {
           <input
             value={subscriber}
             onChange={(value) => subscribtionDetailAdd({subscriber:value})}
-            className={`w-full p-3 border rounded-lg ring-0 focus:outline-none focus:ring-2  ${
+            className={`w-full p-3 border rounded-lg ring-0 focus:outline-none focus:ring-2 text-black  ${
                !subscriber ? " focus:ring-red-400 focus:border-red-400" : "focus:ring-indigo-500 focus:border-indigo-500"
             }`}
-            placeholder="Ad - Soyad"
+            placeholder="İsim - Soyisim"
           />
         </div>
         <div>
@@ -472,7 +479,7 @@ export default function SubscriptionManage() {
             value={dateValue}
             type="date"
             onChange={(value) => subscribtionDetailAdd({date:value})}
-            className={`w-full p-3 border rounded-lg ring-0 focus:outline-none focus:ring-2  ${
+            className={`w-full p-3 border rounded-lg ring-0 focus:outline-none focus:ring-2 text-black  ${
               !dateValue ? " focus:ring-red-400 focus:border-red-400" : "focus:ring-indigo-500 focus:border-indigo-500"
             }`}
             placeholder="Giriş Tarihi"
@@ -483,7 +490,7 @@ export default function SubscriptionManage() {
             value={price}
             type="number"
             onChange={(value) => subscribtionDetailAdd({price:value})}
-            className={`w-full p-3 border rounded-lg ring-0 focus:outline-none focus:ring-2  ${
+            className={`w-full p-3 border rounded-lg ring-0 focus:outline-none focus:ring-2 text-black  ${
               !price ? " focus:ring-red-400 focus:border-red-400" : "focus:ring-indigo-500 focus:border-indigo-500"
             }`}
             placeholder="Ücret"
@@ -542,89 +549,6 @@ export default function SubscriptionManage() {
               onProcessRowUpdateError={(error) => {console.error("Error:",error)}}
               
               />
-          {isCikis && (
-          <div className="flex flex-col bg-white bg-opacity-30 w-full h-full border-2 border-indigo-600 rounded-lg p-6 backdrop-blur-sm">
-          <div className="flex justify-between">
-          <h2 className="text-2xl font-bold text-indigo-700 mb-6">Abone Çıkışı</h2>
-          <button onClick={()=>setIsCikis(null)} className="text-2xl font-bold text-indigo-700 mb-6 p-2  bg-white shadow rounded shadow-gray-400 cursor-pointer">X</button>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Plaka Alanı */}
-            <div className="space-y-2">
-              <label htmlFor="plaka" className="block text-sm font-medium text-gray-700">
-                İsim - Soyisim
-              </label>
-              <input
-                id="namesurname"
-                type="text"
-                placeholder="34 ABC 123"
-                value={isCikis.namesurname}
-                className="w-full px-4 py-2 rounded-md border bg-gray-300 border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                disabled={true}
-              />
-            </div>
-        
-            {/* Ücret Alanı */}
-            <div className="space-y-2">
-              <label htmlFor="ucret" className="block text-sm font-medium text-gray-700">
-                Ücret (₺)
-              </label>
-              <input
-                id="ucret"
-                type="number"
-                placeholder="50.00"
-                value={isCikis.price}
-                onChange={(e) => {
-                  const newValue = e.target.value;
-                  setIsCikis(prev => ({...prev, price: newValue}));
-                }}
-                className="w-full px-4 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
-              />
-            </div>
-        
-            {/* Giriş Tarihi */}
-            <div className="space-y-2">
-              <label htmlFor="giris" className="block text-sm font-medium text-gray-700">
-                Giriş Tarihi
-              </label>
-              <input
-                id="giris"
-                type="datetime-local"
-                value={isCikis.joinDate ? new Date(isCikis.joinDate).toISOString().slice(0, 16) : ""}
-                onChange={(e) => {
-                  const newValue = e.target.value;
-                  // Yerel zamanı UTC'ye çevir
-                  const utcDate = new Date(newValue).toISOString();
-                  setIsCikis(prev => ({...prev, joinDate: utcDate }));
-                }}
-                className="w-full px-4 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-              />
-            </div>
-        
-            {/* Çıkış Tarihi */}
-            <div className="space-y-2">
-              <label htmlFor="cikis" className="block text-sm font-medium text-gray-700">
-                Çıkış Tarihi
-              </label>
-              <input
-                id="cikis"
-                type="datetime-local"
-                className="w-full px-4 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                value={isCikis.cikisTarih ? new Date(isCikis.cikisTarih).toISOString().slice(0, 16) : ""}
-              />
-            </div>
-          </div>
-        
-          {/* Kaydet Butonu */}
-          <div className="mt-8 flex justify-end">
-            <button onClick={ExitSubscriber(isCikis.id)}
-              type="button"
-              className="px-6 py-2 bg-indigo-400 text-white font-medium rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors"
-            >
-              Çıkış
-            </button>
-          </div>
-        </div>)}
           
           </Paper>
           
