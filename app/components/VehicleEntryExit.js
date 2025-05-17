@@ -474,7 +474,7 @@ export default function VehicleEntryExit() {
     )
   }
   return (
-    <div className="flex flex-col w-full min-h-screen bg-gray-50">
+  <div className="flex flex-col w-full min-h-screen bg-gray-50 select-none">
 
   {/* Ana İçerik */}
   
@@ -592,7 +592,7 @@ export default function VehicleEntryExit() {
         <div className="overflow-x-auto">
         { !isLoading ? (
           <div className="flex justify-between">
-          <Paper className="flex" sx={{ height: 400, width: '100%' }}>
+          <Paper className="flex select-none" sx={{ height: 400, width: '100%' }}>
             <DataGrid
               rows={vehiclesData}
               columns={columns}
