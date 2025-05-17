@@ -135,7 +135,17 @@ export default function Header({setClickedTab}) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Sol Taraf - Navigasyon */}
-            <div onClick={()=>setMobileMenu(!mobileMenu)} className="flex items-center space-x-8">
+            {device&&device==="mobile"&&(
+              <div onClick={()=>setMobileMenu(!mobileMenu)} className="flex items-center space-x-8">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24">
+                <rect width="24" height="24" fill="none" />
+                <g class="menu-outline">
+                  <path fill="#1a00ff" fill-rule="evenodd" d="M3 7a1 1 0 0 1 1-1h16a1 1 0 1 1 0 2H4a1 1 0 0 1-1-1m0 5a1 1 0 0 1 1-1h16a1 1 0 1 1 0 2H4a1 1 0 0 1-1-1m0 5a1 1 0 0 1 1-1h16a1 1 0 1 1 0 2H4a1 1 0 0 1-1-1" class="Vector 38 (Stroke)" clip-rule="evenodd" />
+                </g>
+              </svg>  
+            </div>
+            )}
+            <div className="flex items-center space-x-8">
               <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 48 48"
               className="h-9 w-9 text-indigo-600 transform transition-transform hover:rotate-12"
               >
