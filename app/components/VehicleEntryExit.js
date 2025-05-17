@@ -528,7 +528,7 @@ export default function VehicleEntryExit() {
           <input
             value={licensePlate}
             onChange={(value) => handleLicensePlateChange(value)}
-            className={`w-full p-3 border rounded-lg ring-0 focus:outline-none focus:ring-2  ${
+            className={`w-full p-3 border rounded-lg ring-0 focus:outline-none focus:ring-2 text-black  ${
               !isValid && licensePlate ? " focus:ring-red-400 focus:border-red-400" : "focus:ring-indigo-500 focus:border-indigo-500"
             }`}
             placeholder="79 ABC 123"
