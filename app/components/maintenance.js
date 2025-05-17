@@ -12,9 +12,9 @@ return(
         <div className="p-6 shadow shadow-gray-500 rounded bg-white">
         <div className="flex text-center items-center ">
         <ClipLoader color="red" size={40}/>
-        <p className="mx-4">Çalışmalarımız devam ediyor...</p>
+        <p className="mx-4 text-black">Çalışmalarımız devam ediyor...</p>
         </div>
-        <button className="p-3 w-full mt-5 bg-blue-300 cursor-pointer" onClick={()=>history.back()}>Geri Dön</button>
+        <button className="p-3 w-full mt-5 bg-blue-300 cursor-pointer text-black" onClick={()=>history.back()}>Geri Dön</button>
         </div>
     </div>
     </div>
