@@ -26,7 +26,7 @@ export default function VehicleEntryExit() {
   const router = useRouter()
   const [licensePlate, setLicensePlate] = useState("")
   const [isValid, setIsValid] = useState(true)
-  const [recentActivity, setRecentActivity] = useState([])
+  
   const {
     vehiclesData,
     totalDayVehicle,
@@ -35,7 +35,9 @@ export default function VehicleEntryExit() {
     removeVehicle,vehicleIndex,
     setVehicleIndex,
     savedEmail,
-    setSavedEmail
+    setSavedEmail,
+    recentActivity,
+    setRecentActivity
   } = useDataContext()
   const [rowModesModel, setRowModesModel] = useState({});
   const [isLoading, setIsLoading] = useState(true);
