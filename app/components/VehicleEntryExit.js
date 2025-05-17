@@ -3,9 +3,8 @@
 import { useEffect, useState } from "react"
 import { toast, ToastBar, Toaster } from "react-hot-toast"
 import { useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
 import {dbfs} from "@/app/firebase/firebaseConfig";
-import { collection, collectionGroup, deleteDoc, doc, getCountFromServer, getDoc, getDocs, query, setDoc, updateDoc, where } from "firebase/firestore"
+import { collection, collectionGroup, deleteDoc, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from "firebase/firestore"
 import {   
   GridRowModes,
   DataGrid,
@@ -23,7 +22,6 @@ import { MoonLoader } from "react-spinners"
 import Loader from "./animations/loader"
 export default function VehicleEntryExit() {
   const {data: session,status} = useSession();
-  const router = useRouter()
   const [licensePlate, setLicensePlate] = useState("")
   const [isValid, setIsValid] = useState(true)
   
@@ -32,7 +30,7 @@ export default function VehicleEntryExit() {
     totalDayVehicle,
     setTotalDayVehicle,
     addVehicle,updateVehicle,
-    removeVehicle,vehicleIndex,
+    removeVehicle,
     setVehicleIndex,
     savedEmail,
     setSavedEmail,
@@ -248,12 +246,13 @@ export default function VehicleEntryExit() {
         return;
       }
       const encodedEmail = email.replace(/\./g, '_dot_').replace('@','_q_');
-      const userRef = doc(dbfs,`admins/${encodedEmail}/years/year_${year}/daily_payments/${date}/transactions/autoID${vehicleIndex}`);
       const summaryRef = doc(dbfs,`admins/${encodedEmail}`);
       const summarySnapshot = await getDoc(summaryRef);
       const indexDB = summarySnapshot.data()
-      const maxIdDB = indexDB.index || 0
-      const vehicleEntryPrice = indexDB.vehicleEntryPrice
+      const maxIdDB = indexDB?.index || 0
+      const vehicleEntryPrice = indexDB?.vehicleEntryPrice||50
+      const userRef = doc(dbfs,`admins/${encodedEmail}/years/year_${year}/daily_payments/${date}/transactions/autoID${maxIdDB+1}`);
+      
      setDoc(userRef,{
       details:{
         plate:licensePlate,
@@ -267,7 +266,7 @@ export default function VehicleEntryExit() {
      setTotalDayVehicle(totalDayVehicle+1)
      setVehicleIndex(maxIdDB)
      addVehicle({
-      id:maxIdDB,
+      id:maxIdDB+1,
       plate:licensePlate,
       joinDate:utcFormat,
       price:vehicleEntryPrice,
