@@ -3,16 +3,14 @@
 import { forwardRef, useEffect, useState } from "react"
 import { toast, ToastBar, Toaster } from "react-hot-toast"
 import { useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
 import {dbfs} from "@/app/firebase/firebaseConfig";
-import { collectionGroup, deleteDoc, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from "firebase/firestore"
+import { collection, deleteDoc, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from "firebase/firestore"
 import {   
   GridRowModes,
   DataGrid,
   GridActionsCellItem,
   GridRowEditStopReasons,
   } from '@mui/x-data-grid';
-import { useDataContext } from "../context/dataContext";
 import { FormControl, Input, InputLabel, Paper, Stack } from "@mui/material";
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
@@ -22,6 +20,7 @@ import AddTaskIcon from '@mui/icons-material/AddTask';
 import { MoonLoader } from "react-spinners"
 import { IMaskInput } from "react-imask"
 import PropTypes from "prop-types"
+import { useSubContext } from "../context/subscribeContext"
 const TextMaskCustom = forwardRef(function TextMaskCustom(props, ref) {
     const { onChange, ...other } = props;
     return (
@@ -43,24 +42,23 @@ const TextMaskCustom = forwardRef(function TextMaskCustom(props, ref) {
     onChange: PropTypes.func.isRequired,
   };
 export default function SubscriptionManage() {
+  const {
+    addSubscriber,
+    subscribeData,
+    totalDaySub,
+    setTotalDaySub,
+    removeSubscriber
+  } = useSubContext()
   const {data: session,status} = useSession();
-  const router = useRouter()
   const [subscriber, setSubscriber] = useState("")
   const [phoneNumber, setPhoneNumber] = useState("")
   const [dateValue, setDateValue] = useState()
   const [price, setPrice] = useState(0)
-
-  const [isValid, setIsValid] = useState(true)
   const [recentActivity, setRecentActivity] = useState([])
-  const {vehiclesData,totalDayVehicle,setTotalDayVehicle,addVehicle,updateVehicle,removeVehicle} = useDataContext()
   const [rowModesModel, setRowModesModel] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [isCikis,setIsCikis] = useState(null)
   const [encodedEmail,setEncodedEmail] = useState("")
-  const [values, setValues] = useState({
-    textmask: '',
-    numberformat: '1320',
-  });
   function getTurkeyDate() {
     const now = new Date();
     const offset = 3 * 60 * 60 * 1000;
@@ -71,6 +69,12 @@ export default function SubscriptionManage() {
   useEffect(()=>{
   async function getData () {
   try{
+    
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0'); // Aylar 0'dan başlar
+    const day = String(today.getDate()).padStart(2, '0');
+    setDateValue(`${year}-${month}-${day}`);
     if (status === 'loading') return; // Oturum yükleniyor
     if (status === 'unauthenticated') {
       throw new Error('Kullanıcı giriş yapmamış');
@@ -85,29 +89,24 @@ export default function SubscriptionManage() {
     }
     const encodeMail = email.replace(/\./g, '_dot_').replace('@','_q_');
     setEncodedEmail(encodeMail);
-    const date = getTurkeyDate()
-    const [year,month,day] = date.split("-")
-    const summaryRef = doc(dbfs,`admins/${encodeMail}/years/year_${year}/daily_payments/${date}`)
-    const snapshot = await getDoc(summaryRef)
-    let count = 0
-    if(snapshot.exists()){
-      const summary = snapshot.data().summary
-      count = summary.count;
-      setTotalDayVehicle(count)
-    }
-    
-    if((count === vehiclesData.length)){
-      return;
-    }
+    const date = getTurkeyDate()    
     const q = query(
-      collectionGroup(dbfs,'transactions'),
+      collection(dbfs,'admins',encodeMail,'subscriptions'),
       where("cikis","==",false)
     );
     const querySnapshot = await getDocs(q)
       for(const doc of querySnapshot.docs){
-        const StringID = doc.id.replace("autoID","");
+        const StringID = doc.id.replace("sub","");
         const numberID = Number(StringID)
-        addVehicle({id:numberID,...doc.data().details})
+        addSubscriber({id:numberID,...doc.data().details})
+        setRecentActivity((prev) => [
+        {
+          namesurname: doc.data().details.namesurname,
+          action:"giriş",
+          time: new Date(doc.data().details.joinDate).toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" }),
+        },
+        ...prev.slice(0, 3),
+      ]);
       }
     }catch(error){
       console.error(error)
@@ -138,7 +137,7 @@ export default function SubscriptionManage() {
     if(!email){
       return;
     }
-    const vehicle = vehiclesData.find(item =>item.id ===id)
+    const vehicle = subsr.find(item =>item.id ===id)
     const createdTime = new Date(vehicle.createdAt)
     if(!createdTime){
       toast.error("Tarih bulunamadı veya hatalı")
@@ -151,7 +150,7 @@ export default function SubscriptionManage() {
     const plateRef = doc(dbfs,`admins/${encodedEmail}/years/year_${createdYear}/daily_payments/${date}/transactions/autoID${id}`)
     deleteDoc(plateRef)
     const newTotal = totalDayVehicle-1
-    setTotalDayVehicle(newTotal)
+    setTotalDaySub(newTotal)
     const summaryRef = doc(dbfs,`admins/${encodedEmail}/years/year_${createdYear}/daily_payments/${date}`);
     updateDoc(summaryRef,{
         "summary.count":newTotal
@@ -166,9 +165,9 @@ export default function SubscriptionManage() {
       [id]: { mode: GridRowModes.View, ignoreModifications: true },
     });
 
-    const editedRow = vehiclesData.find((row) => row.id === id);
+    const editedRow = subscribeData.find((row) => row.id === id);
     if (editedRow.isNew) {
-      setTotalDayVehicle(vehiclesData.filter((row) => row.id !== id));
+      setTotalDaySub(subscribeData.filter((row) => row.id !== id));
     }
   };
 
@@ -209,28 +208,23 @@ export default function SubscriptionManage() {
         setSubscriber(value)
     }
     if(e.mask){
-    setValues({
-        ...values,
-        [e.mask.target.name]: e.mask.target.value,
-        });
+      const value = e.mask.target.value
+      setPhoneNumber(value);
     }
     if(e.date){
         const value = e.date.target.value
-        console.error(value)
         setDateValue(value)
     }
     if(e.price){
         const value = e.price.target.value
         setPrice(value)
     }
-  }
-  const handleAction = async() => {
-    if (!isValid ||!licensePlate) {
-      toast.error("Geçersiz plaka numarası!")
-      return
+    if(e.phoneNumber){
+      const value = e.price.target.value
+      setPhoneNumber(value)
     }
-    const maxID = vehiclesData.length > 0 ? Math.max(...vehiclesData.map(item =>item.id))+1 : 1
-    
+  }
+  const handleAction = async() => {    
       const formatter = new Intl.DateTimeFormat("tr-TR", {
         timeZone: "Europe/Istanbul",
         day: "2-digit",
@@ -240,113 +234,135 @@ export default function SubscriptionManage() {
         minute:"2-digit",
         hour12:false,
       });
-      const nowInTurkey = new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Istanbul" }));
+      const nowInTurkey = new Date(new Date(dateValue).toLocaleString("en-US"));
       const utcFormat = nowInTurkey.toISOString();
       const [day, month, yearandtime] = formatter.format(new Date()).split(".");
       const [year, time] = yearandtime.trim().split(" ");
-      const date = getTurkeyDate()
       const email = session?.user?.email
       if(!email){
         return;
       }
       const encodedEmail = email.replace(/\./g, '_dot_').replace('@','_q_');
-      const userRef = doc(dbfs,`admins/${encodedEmail}/years/year_${year}/daily_payments/${date}/transactions/autoID${maxID}`);
-      const summaryRef = doc(dbfs,`admins/${encodedEmail}/years/year_${year}/daily_payments/${date}`);
+      const summaryRef = doc(dbfs,`admins/${encodedEmail}`);
       const summarySnapshot = await getDoc(summaryRef);
       const summaryData = summarySnapshot.data()
-      const maxIdDB = summaryData?.summary.maxID || 0
+      const maxIdDB = summaryData?.subIndex || 0
+      const userRef = doc(dbfs,`admins/${encodedEmail}/subscriptions/sub${maxIdDB+1}`);
+      if(maxIdDB ===0){
+        setDoc(summaryRef,{
+          subIndex:maxIdDB+1
+        },{merge:true})
+      }else{
+         updateDoc(summaryRef,{
+          subIndex:maxIdDB+1
+        })
+      }
+      const newSub = {
+      id:maxIdDB+1,
+      namesurname:subscriber,
+      joinDate:utcFormat,
+      price:price,
+      createdAt:utcFormat,
+      phonenumber:phoneNumber
+    }
      setDoc(userRef,{
       details:{
-        plate:licensePlate,
+        namesurname:subscriber,
+        phonenumber:phoneNumber,
         joinDate:utcFormat,
-        price:50,
+        price:price,
         createdAt:utcFormat
       },
+      userEmail:encodedEmail,
       cikis:false,
      });
-     setTotalDayVehicle(vehiclesData.length+1)
-     addVehicle({
-      id:maxIdDB+1,
-      plate:licensePlate,
-      joinDate:utcFormat,
-      price:50,
-      createdAt:utcFormat,})
-     setDoc(summaryRef,{
-      summary:{
-        count:vehiclesData.length+1,
-        maxID:maxIdDB+1
-      }
-     },{merge:true})
-    
-    toast.success(`${licensePlate} plakalı araç girişi yapıldı.`)
+     setTotalDaySub(totalDaySub)
+     addSubscriber(newSub)
+    toast.success(`${subscriber} kişinin girişi yapıldı.`)
     setRecentActivity((prev) => [
       {
-        plate: licensePlate,
+        namesurname: subscriber,
         action:"giriş",
         time: new Date().toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" }),
       },
       ...prev.slice(0, 3),
     ]);
-    setLicensePlate("");
+    setSubscriber("");
+    setPhoneNumber("")
+    setPrice("")
     
   }
   const ExitVehicle = (id) =>async()=>{
     if(isCikis !==null){
-      const selectedVehicle = vehiclesData.find(item =>item.id ===id)
-      const createdTime = new Date(selectedVehicle.createdAt)
-      console.error("Created Time:",JSON.stringify(createdTime))
+      const selectedSub = subscribeData.find(item =>item.id ===id)
+      const createdTime = new Date(selectedSub.createdAt)
       const [year, month, day] = [
         createdTime.getFullYear(),
         (createdTime.getMonth() + 1).toString().padStart(2, '0'),
         createdTime.getDate().toString().padStart(2, '0')
       ];
-      const vehicleRef = doc(dbfs,`admins/${encodedEmail}/years/year_${year}/daily_payments/${year}-${month}-${day}/transactions/autoID${isCikis.id}`)
-      console.error(JSON.stringify(vehicleRef))
-      setDoc(vehicleRef,{
+      const subRef = doc(dbfs,`admins/${encodedEmail}/subscriptions/sub${selectedSub.id}`)
+      console.error(JSON.stringify(subRef))
+      setDoc(subRef,{
         cikis:true,
+        userEmail:encodedEmail
       },{merge:true})
-      const date = getTurkeyDate()
-      const summaryRef = doc(dbfs,`admins/${encodedEmail}/years/year_${year}/daily_payments/${date}`);
-      const summarySnapshot = await getDoc(summaryRef);
-      const summaryData = summarySnapshot.data()
-      const count = summaryData?.summary.count || 0
-      updateDoc(summaryRef,{
-        "summary.count":count-1
-       },{merge:true})
-      removeVehicle(selectedVehicle.id)
+      removeSubscriber(selectedSub.id)
       setIsCikis(null)
       setRecentActivity((prev) => [
         {
-          plate: selectedVehicle.plate,
+          namesurname: selectedSub.namesurname,
           action:"çıkış",
           time: new Date().toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" }),
         },
         ...prev.slice(0, 3),
       ]);
-      setTotalDayVehicle(totalDayVehicle-1)
-      toast.success(`${selectedVehicle.plate} plakalı aracın çıkışı yapıldı`)
+      toast.success(`${selectedSub.namesurname} abone çıkışı yapıldı`)
     }else{
       const cikisTarih = new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Istanbul"})).toISOString().slice(0,16)
       setIsCikis(prev => ({
-        ...vehiclesData.find(item => item.id === id),
+        ...subscribeData.find(item => item.id === id),
         cikisTarih: cikisTarih
       }));
     }
   }
+  const recentActivityExit =(action,namesurname)=>{
+    if(isCikis) return toast.error("Aynı anda 2 çıkış yapılamaz.");
+    if(action ==="çıkış") return toast.success("Abone çıkışı yapılmış.")
+    if(action.toString() === "giriş") {
+      const subId = subscribeData.find(item => item.namesurname === namesurname)?.id;
+      if (subId !== undefined) {
+        ExitVehicle(subId)();
+      }else{
+        toast.success("Abone çıkışı yapılmış.")
+      }
+    }
+  }
   const columns = [
-    { field: "id", headerName: 'ID', width: 90, },
+    { field: "id", headerName: 'ID', width: 45, },
     {
-      field: 'plate',
-      headerName: 'Plaka',
+      field: 'namesurname',
+      headerName: 'İsim - Soyisim',
       type: 'string',
       width: 180,
       editable:true,
     },
     {
+      field: 'phonenumber',
+      headerName: 'Telefon No',
+      type: 'string',
+      width: 150,
+      valueFormatter: (value) => {
+      if(!value) return;
+      return `0 ${value.toLocaleString()}`;
+      },
+      editable:true,
+    },
+    {
       field: 'joinDate',
-      headerName: 'Tarih',
+      headerName: 'Abonelik Başlangıcı',
       type: 'dateTime',
-      width: 180,
+      width: 200,
       editable:true,
       valueGetter: (value,row) => {
         const date = row.joinDate;
@@ -359,7 +375,13 @@ export default function SubscriptionManage() {
     {
       field: 'price',
       headerName: 'Ücret',
-      type: 'string',
+      type: 'number',
+      valueFormatter: (value) => {
+      if (!value || typeof value !== 'number') {
+        return value;
+      }
+      return `${value.toLocaleString()} ₺`;
+      },
       width: 90,
       editable:true,
     },
@@ -443,7 +465,7 @@ export default function SubscriptionManage() {
       <FormControl variant="standard">
         <InputLabel htmlFor="formatted-text-mask-input">Telefon Numarası</InputLabel>
         <Input
-          value={values.textmask}
+          value={phoneNumber}
           placeholder="(500) 000-0000"
           onChange={(event)=>subscribtionDetailAdd({mask:event})}
           name="textmask"
@@ -488,9 +510,10 @@ export default function SubscriptionManage() {
             {recentActivity.map((activity, index) => (
               <div 
                 key={index}
-                className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
+                onClick={()=>recentActivityExit(activity.action,activity.namesurname)}
+                className="flex cursor-pointer justify-between items-center p-3 bg-gray-50 rounded-lg"
               >
-                <span className="font-medium">{activity.plate}</span>
+                <span className="font-medium">{activity.namesurname}</span>
                 <div className="text-right">
                   <span className="block text-sm text-indigo-600">{activity.action}</span>
                   <span className="text-xs text-gray-500">{activity.time}</span>
@@ -514,7 +537,7 @@ export default function SubscriptionManage() {
           <div className="flex justify-between">
           <Paper className="flex" sx={{ height: 400, width: '100%' }}>
             <DataGrid
-              rows={vehiclesData}
+              rows={subscribeData}
               columns={columns}
               editMode="row"
               rowModesModel={rowModesModel}
@@ -530,20 +553,20 @@ export default function SubscriptionManage() {
           {isCikis && (
           <div className="flex flex-col bg-white bg-opacity-30 w-full h-full border-2 border-indigo-600 rounded-lg p-6 backdrop-blur-sm">
           <div className="flex justify-between">
-          <h2 className="text-2xl font-bold text-indigo-700 mb-6">Araç Çıkışı</h2>
+          <h2 className="text-2xl font-bold text-indigo-700 mb-6">Abone Çıkışı</h2>
           <button onClick={()=>setIsCikis(null)} className="text-2xl font-bold text-indigo-700 mb-6 p-2  bg-white shadow rounded shadow-gray-400 cursor-pointer">X</button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Plaka Alanı */}
             <div className="space-y-2">
               <label htmlFor="plaka" className="block text-sm font-medium text-gray-700">
-                Plaka No
+                İsim - Soyisim
               </label>
               <input
-                id="plaka"
+                id="namesurname"
                 type="text"
                 placeholder="34 ABC 123"
-                value={isCikis.plate}
+                value={isCikis.namesurname}
                 className="w-full px-4 py-2 rounded-md border bg-gray-300 border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                 disabled={true}
               />

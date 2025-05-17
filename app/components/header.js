@@ -1,15 +1,24 @@
 "use client"
+import { collection, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from "firebase/firestore";
 import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { dbfs } from "../firebase/firebaseConfig";
+import { useEffect, useRef, useState } from "react";
+import toast from "react-hot-toast";
+import { useSubContext } from "../context/subscribeContext";
 
 export default function Header({setClickedTab}) {
     const [tab,setTab] = useState("aracgiris");
     const [profileMenu,setProfileMenu] = useState(false);
     const {data:session} = useSession();
+    const [notificationPanel,setNotificationPanel] = useState(false);
+    const [notifications,setNotifications] = useState([])
+    const [savedEmail,setSavedEmail] = useState("")
     const pathname = usePathname()
+    const panelRef = useRef(null)
+    const {removeSubscriber} = useSubContext()
     const hideTab = () => setClickedTab(false)
     const showTab = () => setClickedTab(true)
     useEffect(()=>{
@@ -25,10 +34,98 @@ export default function Header({setClickedTab}) {
         console.error(e)
       }
     },[pathname])
+    useEffect(()=>{
+      const getSubData =async()=>{
+      if(session){
+        const email = session.user.email
+        const encodeMail = email.replace(/\./g, '_dot_').replace('@','_q_');
+        setSavedEmail(encodeMail)
+        const subRef = query(
+              collection(dbfs,"admins",encodeMail,`subscriptions`),
+              where("cikis","==",false),
+              where("userEmail","==",encodeMail),
+            );
+        const snapshotSub = await getDocs(subRef)
+        for(const doc of snapshotSub.docs){
+          const subId = doc.id
+          const joinDate = doc.data().details.joinDate
+          const namesurname = doc.data().details.namesurname
+          const date = new Date(joinDate)
+          const formattedJoinDate = date.toISOString().slice(0,10)
+          const onemonthafterDateString = date.setMonth(date.getMonth()+1)
+          const oneMonthAfterDate = new Date(onemonthafterDateString)
+          if(Date.now()>=oneMonthAfterDate){
+            if(notifications.length > 0){
+              const userExists = notifications.find(item=>item.namesurname === namesurname)
+              console.error(JSON.stringify(userExists))
+              if(userExists) return
+            }
+            setNotifications((prev)=>[...prev, { id:subId,namesurname:namesurname,date:formattedJoinDate }])
+          }
+        }
+      }
+      }
+      getSubData()
+    },[])
+    useEffect(() => {
+    function handleClickOutside(event) {
+      if (panelRef.current && !panelRef.current.contains(event.target)) {
+        setNotificationPanel(false);
+        setProfileMenu(false)
+      }
+    }
+
+    if (notificationPanel||profileMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [notificationPanel,profileMenu]);
     const handleTabClick = (tabName) => ()=>{
       if(("/"+tabName) ===pathname) return
       hideTab();
       setTab(tabName);
+    }
+    const renewSubscription =(id,namesurname)=>async()=>{
+      try{
+      const idRef = doc(dbfs,"admins",savedEmail,"subscriptions",id)
+      const oldIdSnapshot = await getDoc(idRef)
+      const phonenumber = oldIdSnapshot.data()&&oldIdSnapshot.data().details.phonenumber
+      const price = oldIdSnapshot.data()&&oldIdSnapshot.data().details.price
+      const adminRef = doc(dbfs,"admins",savedEmail)
+      const adminDataSnapshot = await getDoc(adminRef)
+      const maxId = adminDataSnapshot.data()&& adminDataSnapshot.data().subIndex
+      const newSubId = `sub${maxId+1}`
+      updateDoc(idRef,{
+        cikis:true
+      })
+      
+      const renewSubRef = doc(dbfs,"admins",savedEmail,"subscriptions",newSubId)
+      const nowInTurkey = new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Istanbul" }));
+      const utcFormat = nowInTurkey.toISOString();
+      if(oldIdSnapshot.data()){
+      setDoc(renewSubRef,{
+        cikis:false,
+        details:{
+          createdAt:utcFormat,
+          joinDate:utcFormat,
+          namesurname:namesurname,
+          phonenumber:phonenumber,
+          price:price
+        },
+        userEmail:savedEmail
+      })
+      updateDoc(adminRef,{
+        subIndex:maxId+1
+      })
+      }
+    }finally{
+      const subId = id.replace("sub","");
+      removeSubscriber(subId)
+      notifications.length>0 && setNotifications(prev => prev.filter(item => item.id !==id));
+      toast.success(`${namesurname} adlı kullanıcının aboneliği başarıyla yenilendi`)    } 
     }
     return (
         <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-lg border-b border-gray-100 shadow-sm">
@@ -86,6 +183,15 @@ export default function Header({setClickedTab}) {
             </div>
       
             {/* Sağ Taraf - Kullanıcı Profili */}
+           <div onClick={()=>setNotificationPanel(!notificationPanel)} className="flex ml-auto justify-end items-end text-end cursor-pointer">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+                <rect width="32" height="32" fill="none" />
+                <path fill="#0053ff" d="M28.707 19.293L26 16.586V13a10.014 10.014 0 0 0-9-9.95V1h-2v2.05A10.014 10.014 0 0 0 6 13v3.586l-2.707 2.707A1 1 0 0 0 3 20v3a1 1 0 0 0 1 1h7v.777a5.15 5.15 0 0 0 4.5 5.199A5.006 5.006 0 0 0 21 25v-1h7a1 1 0 0 0 1-1v-3a1 1 0 0 0-.293-.707M19 25a3 3 0 0 1-6 0v-1h6Zm8-3H5v-1.586l2.707-2.707A1 1 0 0 0 8 17v-4a8 8 0 0 1 16 0v4a1 1 0 0 0 .293.707L27 20.414Z" />
+              </svg>
+              {notifications && notifications.length > 0 && (
+                <div className="absolute ml-5 mb-4 w-5 h-5 rounded-full text-xs text-white bg-red-600 flex items-center justify-center">{notifications.length}</div>
+              )}
+            </div>
             <div className="relative ml-4">
               <button 
                 onClick={() => setProfileMenu(!profileMenu)}
@@ -112,7 +218,7 @@ export default function Header({setClickedTab}) {
       
               {/* Açılır Menü */}
               {profileMenu && (
-                <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
+                <div ref={panelRef} className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
                   <div className="py-1">
                     <Link
                         className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 text-left cursor-pointer"
@@ -129,6 +235,48 @@ export default function Header({setClickedTab}) {
                   </div>
                 </div>
               )}
+              {notificationPanel && (
+                <div ref={panelRef} className="origin-top-right absolute right-5 mt-2 w-80 rounded-xl shadow-2xl bg-white ring-1 ring-black ring-opacity-10 z-50">
+                  <div className="py-4 px-4">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-2 flex items-center justify-between">
+                      <span>🔔 Bildirimler</span>
+                    </h3>
+                    <div className="h-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 mb-3 rounded-full"></div>
+                    
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                      {notifications && notifications.length > 0 ? (
+                        notifications.map((value, index) => (
+                          <div
+                            key={index}
+                            className="border border-gray-200 p-4 rounded-xl shadow-sm transition duration-200 hover:shadow-md hover:bg-gray-50"
+                          >
+                            <div className="font-semibold text-gray-800">{value.namesurname}</div>
+
+                            <div className="text-sm text-gray-500 mt-1">
+                              Abonelik başlangıcı: <span className="font-medium">{value.date}</span>
+                            </div>
+
+                            <div className="flex items-center text-sm text-blue-600 mt-2 italic">
+                              <span className="mr-1">ℹ️</span>
+                              1 aylık abonelik süresi sona ermiştir.
+                            </div>
+
+                            <div className="flex justify-end mt-4">
+                              <button onClick={renewSubscription(value.id,value.namesurname)} className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 text-sm rounded-lg transition cursor-pointer">
+                                Aboneliği Yenile
+                              </button>
+                            </div>
+                          </div>
+
+                        ))
+                      ) : (
+                        <div className="text-sm text-gray-500 text-center">Henüz bildirim yok.</div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
             </div>
           </div>
         </div>

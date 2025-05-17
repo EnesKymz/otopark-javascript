@@ -350,12 +350,14 @@ export default function VehicleEntryExit() {
     
   }
   const recentActivityExit =(action,plate)=>{
+    if(isCikis) return toast.error("Aynı anda 2 çıkış yapılamaz.");
+    if(action ==="çıkış") return toast.success("Abone çıkışı yapılmış.")
     if(action.toString() === "giriş") {
       const vehicleId = vehiclesData.find(item => item.plate === plate)?.id;
       if (vehicleId !== undefined) {
         ExitVehicle(vehicleId)();
       }else{
-        toast.error("Araç çıkışı yapılmış.")
+        toast.success("Araç çıkışı yapılmış.")
       }
     }
   }

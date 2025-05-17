@@ -10,18 +10,7 @@ export const DataProvider = ({ children }) => {
   const [vehiclesData, setVehiclesData] = useState();
   const [vehicleIndex,setVehicleIndex] = useState(0)
   const [totalDayVehicle, setTotalDayVehicle] = useState(0);
-  // Verileri localStorage'a kaydediyoruz
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('vehiclesData', JSON.stringify(vehiclesData));
-      // Günlük araç sayısını güncelle
-      const today = new Date().toISOString().split('T')[0];
-      const todayVehicles = vehiclesData?.filter(vehicle => 
-        vehicle.time && vehicle.time.includes(today)
-      );
-    }
-  }, [vehiclesData]);
-  // Daha güvenli araç ekleme fonksiyonu
+  
   const addVehicle = useCallback((newVehicle) => {
     if (!newVehicle?.plate) {
       console.error('Plaka bilgisi eksik');
@@ -46,10 +35,10 @@ export const DataProvider = ({ children }) => {
       // Plaka kontrolü
       const plateExists = prev?.some(v => v.plate === formattedVehicle.plate);
       if (plateExists) {
-        if(vehiclesData?.length === 0){
+        if(vehiclesData&&vehiclesData?.length === 0){
           return;
         }
-        toast.error('Bu plaka zaten kayıtlı:', formattedVehicle.plate);
+        toast.error(`Bu plaka zaten kayıtlı: ${formattedVehicle.plate}`);
         return prev;
       }else{
         if(prev){

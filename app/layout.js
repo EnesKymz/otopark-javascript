@@ -7,6 +7,7 @@ import Header from "./components/header";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import Loader from "./components/animations/loader";
+import { SubscribeProvider } from "./context/subscribeContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,12 +30,12 @@ export default function RootLayout({ children }) {
       >
         <AuthProvider>
         <DataProvider>
-
-        { pathname !=="/"&&
-          <Header setClickedTab={setClickedTab}/>
-        }
-        
+          <SubscribeProvider>
+          { pathname !=="/"&&
+            <Header setClickedTab={setClickedTab}/>
+          }
           {clickedTab ? children : <Loader/>}
+          </SubscribeProvider>
         </DataProvider>
         </AuthProvider>
       </body>
