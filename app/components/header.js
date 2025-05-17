@@ -8,6 +8,7 @@ import { dbfs } from "../firebase/firebaseConfig";
 import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { useSubContext } from "../context/subscribeContext";
+import deviceTypeDetector from "../utils/deviceDetection";
 
 export default function Header({setClickedTab}) {
     const [tab,setTab] = useState("aracgiris");
@@ -21,6 +22,8 @@ export default function Header({setClickedTab}) {
     const {removeSubscriber} = useSubContext()
     const hideTab = () => setClickedTab(false)
     const showTab = () => setClickedTab(true)
+    const [device,setDevice] = useState("")
+    const [mobileMenu,setMobileMenu] = useState(false);
     useEffect(()=>{
         if(!session){
             window.location.href="/"
@@ -33,6 +36,8 @@ export default function Header({setClickedTab}) {
     },[pathname])
     useEffect(()=>{
       const getSubData =async()=>{
+      const checkDevice = await deviceTypeDetector()
+      setDevice("mobile")
       if(session){
         const email = session.user.email
         const encodeMail = email.replace(/\./g, '_dot_').replace('@','_q_');
@@ -68,21 +73,23 @@ export default function Header({setClickedTab}) {
       if (panelRef.current && !panelRef.current.contains(event.target)) {
         setNotificationPanel(false);
         setProfileMenu(false)
+        setMobileMenu(false)
       }
     }
 
-    if (notificationPanel||profileMenu) {
+    if (notificationPanel||profileMenu||mobileMenu) {
       document.addEventListener("mousedown", handleClickOutside);
     }
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [notificationPanel,profileMenu]);
+  }, [notificationPanel,profileMenu,mobileMenu]);
     const handleTabClick = (tabName) => ()=>{
       if(("/"+tabName) ===pathname) return
       hideTab();
       setTab(tabName);
+      setMobileMenu(false)
     }
     const renewSubscription =(id,namesurname)=>async()=>{
       try{
@@ -128,7 +135,7 @@ export default function Header({setClickedTab}) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Sol Taraf - Navigasyon */}
-            <div className="flex items-center space-x-8">
+            <div onClick={()=>setMobileMenu(!mobileMenu)} className="flex items-center space-x-8">
               <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 48 48"
               className="h-9 w-9 text-indigo-600 transform transition-transform hover:rotate-12"
               >
@@ -177,7 +184,7 @@ export default function Header({setClickedTab}) {
                 </Link>
               </nav>
             </div>
-      
+            
             {/* Sağ Taraf - Kullanıcı Profili */}
            <div onClick={()=>setNotificationPanel(!notificationPanel)} className="flex ml-auto justify-end items-end text-end cursor-pointer">
               <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
@@ -279,6 +286,31 @@ export default function Header({setClickedTab}) {
         
         {/* Progress Bar */}
         <div className="h-0.5 bg-gradient-to-r from-indigo-500 to-purple-500"></div>
+        {mobileMenu && device === "mobile" && (
+        <div ref={panelRef} className="w-48 absolute h-screen bg-white shadow-md shadow-gray-300 rounded z-0">
+          <div className="flex flex-col p-4 space-y-2">
+            {[
+              { href: "/anasayfa", label: "Ana Sayfa", key: "anasayfa" },
+              { href: "/aracgiris", label: "Araç Girişi", key: "aracgiris" },
+              { href: "/aboneyonetimi", label: "Abone Yönetimi", key: "aboneyonetimi" },
+            ].map(({ href, label, key }) => (
+              <Link
+                key={key}
+                onClick={handleTabClick(key)}
+                href={href}
+                className={`pb-1 px-1 font-medium transition-colors ${
+                  tab === key
+                    ? "text-indigo-600 border-b-2 border-indigo-600"
+                    : "text-gray-500 hover:text-indigo-500"
+                }`}
+              >
+                {label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
       </header>
     )
 }
