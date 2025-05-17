@@ -449,7 +449,6 @@ export default function VehicleEntryExit() {
       },
     },
   ];
-  const paginationModel = { page: 0, pageSize: 10 };
   const [statusPanel,setStatusPanel] = useState("giris")
   const RecentActivity =()=>{
     return(
@@ -598,11 +597,10 @@ export default function VehicleEntryExit() {
               columns={columns}
               editMode="row"
               rowModesModel={rowModesModel}
-              paginationModel={paginationModel}
+              pageSizeOptions={[10, 100, { value: 1000, label: '1,000' }, { value: -1, label: 'All' }]}
               onRowModesModelChange={handleRowModesModelChange}
               onRowEditStop={handleRowEditStop}
               processRowUpdate={processRowUpdate}
-              pageSizeOptions={[5, 10,100]}
               sx={{ border: 0 }}
               onProcessRowUpdateError={(error) => console.error(error)}
               
