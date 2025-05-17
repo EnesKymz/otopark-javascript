@@ -190,10 +190,13 @@ export default function VehicleEntryExit() {
         return;
       }
       const encodedEmail = email.replace(/\./g, '_dot_').replace('@','_q_');
-      const date= getTurkeyDate()
-      const [year,month,day] = date.split("-")
+      const editedVehicle = vehiclesData?.find(item=>item.id===newRow.id)
+      const createdAt = editedVehicle&&editedVehicle.createdAt
+      const date = new Date(createdAt)
+      const formattedDate = date.toISOString().slice(0,10)
+      const [year,month,day] = formattedDate.split("-")
       const stringTime = JSON.stringify(newRow.joinDate)
-    const plateRef = doc(dbfs,`admins/${encodedEmail}/years/year_${year}/daily_payments/${date}/transactions/autoID${newRow.id}`)
+    const plateRef = doc(dbfs,`admins/${encodedEmail}/years/year_${year}/daily_payments/${formattedDate}/transactions/autoID${newRow.id}`)
     
     updateDoc(plateRef,{
         "details.plate":newRow.plate,
