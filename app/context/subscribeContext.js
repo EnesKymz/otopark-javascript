@@ -58,8 +58,10 @@ export const SubscribeProvider = ({ children }) => {
     ));
   }, []);
   const removeSubscriber = useCallback((id) => {
-    if(subscribeData&&subscribeData.length>0){
+    try{
     setSubscriberData(prev => prev.filter(item => item.id !==id));
+    }catch(e){
+      
     }
   }, []);
   // Context değerleri
