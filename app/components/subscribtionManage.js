@@ -512,7 +512,7 @@ export default function SubscriptionManage() {
                 onClick={()=>recentActivityExit(activity.action,activity.namesurname)}
                 className="flex cursor-pointer justify-between items-center p-3 bg-gray-50 rounded-lg"
               >
-                <span className="font-medium">{activity.namesurname}</span>
+                <span className="font-medium text-black">{activity.namesurname}</span>
                 <div className="text-right">
                   <span className="block text-sm text-indigo-600">{activity.action}</span>
                   <span className="text-xs text-gray-500">{activity.time}</span>
