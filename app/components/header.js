@@ -54,6 +54,8 @@ export default function Header({setClickedTab}) {
           const namesurname = doc.data().details.namesurname
           const date = new Date(joinDate)
           const formattedJoinDate = date.toISOString().slice(0,10)
+          const [year,month,day] = formattedJoinDate.split("-")
+          const realDate = `${day}/${month}/${year}`
           const onemonthafterDateString = date.setMonth(date.getMonth()+1)
           const oneMonthAfterDate = new Date(onemonthafterDateString)
           if(Date.now()>=oneMonthAfterDate){
@@ -61,7 +63,7 @@ export default function Header({setClickedTab}) {
               const userExists = notifications.find(item=>item.namesurname === namesurname)
               if(userExists) return
             }
-            setNotifications((prev)=>[...prev, { id:subId,namesurname:namesurname,date:formattedJoinDate }])
+            setNotifications((prev)=>[...prev, { id:subId,namesurname:namesurname,date:realDate }])
           }
         }
       }

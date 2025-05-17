@@ -1,6 +1,4 @@
 import { useSession } from "next-auth/react";
-import Image from "next/image";
-import Link from "next/link";
 import { ClipLoader } from "react-spinners";
 
 export default function MaintenancePage() {
