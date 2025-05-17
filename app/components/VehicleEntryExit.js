@@ -591,13 +591,13 @@ export default function VehicleEntryExit() {
         <div className="overflow-x-auto">
         { !isLoading ? (
           <div className="flex justify-between">
-          <Paper className="flex select-none" sx={{ height: 400, width: '100%' }}>
+          <Paper className="flex select-none" sx={{ height: '100%', width: '100%' }}>
             <DataGrid
               rows={vehiclesData}
               columns={columns}
               editMode="row"
               rowModesModel={rowModesModel}
-              pageSizeOptions={[10, 100, { value: 1000, label: '1,000' }, { value: -1, label: 'All' }]}
+              pageSizeOptions={[10, 50, { value: 100, label: '100' }, { value: -1, label: 'All' }]}
               onRowModesModelChange={handleRowModesModelChange}
               onRowEditStop={handleRowEditStop}
               processRowUpdate={processRowUpdate}
