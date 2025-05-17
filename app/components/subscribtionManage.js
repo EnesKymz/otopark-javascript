@@ -132,7 +132,7 @@ export default function SubscriptionManage() {
 
   const handleDeleteClick = (id) => () => {
     if (confirm("Bu aracı silmek istediğinize emin misiniz?")) {
-    removeVehicle(id)
+    removeSubscriber(id)
     const email = session?.user?.email
     if(!email){
       return;
@@ -291,7 +291,7 @@ export default function SubscriptionManage() {
     setPrice("")
     
   }
-  const ExitVehicle = (id) =>async()=>{
+  const ExitSubscriber = (id) =>async()=>{
     if(isCikis !==null){
       const selectedSub = subscribeData.find(item =>item.id ===id)
       const createdTime = new Date(selectedSub.createdAt)
@@ -331,7 +331,7 @@ export default function SubscriptionManage() {
     if(action.toString() === "giriş") {
       const subId = subscribeData.find(item => item.namesurname === namesurname)?.id;
       if (subId !== undefined) {
-        ExitVehicle(subId)();
+        ExitSubscriber(subId)();
       }else{
         toast.success("Abone çıkışı yapılmış.")
       }
@@ -429,7 +429,7 @@ export default function SubscriptionManage() {
           <GridActionsCellItem key={id}
           icon={<AddTaskIcon/>}
           label="Delete"
-          onClick={ExitVehicle(id)}
+          onClick={ExitSubscriber(id)}
           color="inherit"
          /> 
         ];
@@ -624,7 +624,7 @@ export default function SubscriptionManage() {
         
           {/* Kaydet Butonu */}
           <div className="mt-8 flex justify-end">
-            <button onClick={ExitVehicle(isCikis.id)}
+            <button onClick={ExitSubscriber(isCikis.id)}
               type="button"
               className="px-6 py-2 bg-indigo-400 text-white font-medium rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors"
             >
