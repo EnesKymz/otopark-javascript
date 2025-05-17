@@ -60,14 +60,15 @@ export default function VehicleEntryExit() {
     }    
     
     const email = session.user.email
+    const encodedEmail = email.replace(/\./g, '_dot_').replace('@','_q_');
     if(!email){
       return;
     }
-    if(email !== savedEmail){
+    if(encodedEmail !== savedEmail){
       setVehicleIndex(0)
       setTotalDayVehicle(0)
       setRowModesModel({})
-      if(vehiclesData && vehiclesData.length > 0){
+      if(vehiclesData && vehiclesData?.length > 0){
         for(const vehicle of vehiclesData){
           removeVehicle(vehicle.id)
           }
@@ -93,15 +94,13 @@ export default function VehicleEntryExit() {
       where("cikis","==",false),
       where("userEmail","==",encodeMail),
     );
-    const countCikis = await getCountFromServer(q)
     const summaryRef2 = collection(dbfs, `admins/${encodeMail}/years/year_${year}/daily_payments/${date}/transactions`);
     const sumsnapshot = await getDocs(summaryRef2);
     const sum = sumsnapshot.size || 0;
     setTotalDayVehicle(sum)
-    if(countCikis>0&&vehiclesData && (countCikis.data().count === vehiclesData?.length)){
-      return;
-    }
     const querySnapshot = await getDocs(q)
+    console.error(querySnapshot.size,vehiclesData?.length)
+    if(vehiclesData&&querySnapshot.size===vehiclesData?.length) return;
       for(const doc of querySnapshot.docs){
         const StringID = doc.id.replace("autoID","");
         const numberID = Number(StringID)

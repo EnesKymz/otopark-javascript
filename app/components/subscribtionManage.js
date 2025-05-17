@@ -4,7 +4,7 @@ import { forwardRef, useEffect, useState } from "react"
 import { toast, ToastBar, Toaster } from "react-hot-toast"
 import { useSession } from "next-auth/react"
 import {dbfs} from "@/app/firebase/firebaseConfig";
-import { collection, deleteDoc, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from "firebase/firestore"
+import { collection, deleteDoc, doc, getCountFromServer, getDoc, getDocs, query, setDoc, updateDoc, where } from "firebase/firestore"
 import {   
   GridRowModes,
   DataGrid,
@@ -89,12 +89,12 @@ export default function SubscriptionManage() {
     }
     const encodeMail = email.replace(/\./g, '_dot_').replace('@','_q_');
     setEncodedEmail(encodeMail);
-    const date = getTurkeyDate()    
     const q = query(
       collection(dbfs,'admins',encodeMail,'subscriptions'),
       where("cikis","==",false)
     );
     const querySnapshot = await getDocs(q)
+    if(subscribeData&&querySnapshot.size===subscribeData.length) return;
       for(const doc of querySnapshot.docs){
         const StringID = doc.id.replace("sub","");
         const numberID = Number(StringID)

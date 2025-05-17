@@ -61,7 +61,11 @@ export const DataProvider = ({ children }) => {
     ));
   }, []);
   const removeVehicle = useCallback((id) => {
+    try{
     setVehiclesData(prev => prev.filter(item => item.id !==id));
+    }catch{
+
+    }
   }, []);
   // Context değerleri
   const contextValue = {

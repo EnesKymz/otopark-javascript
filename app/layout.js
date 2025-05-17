@@ -8,6 +8,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import Loader from "./components/animations/loader";
 import { SubscribeProvider } from "./context/subscribeContext";
+import ConnectionStatus from "./components/connectionStatus";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

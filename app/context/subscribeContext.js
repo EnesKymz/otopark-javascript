@@ -35,7 +35,6 @@ export const SubscribeProvider = ({ children }) => {
         if(subscribeData?.length === 0){
           return;
         }
-        toast.error('Bu kişi zaten kayıtlı:', formattedSub.namesurname);
         return prev;
       }else{
         if(prev){
@@ -61,7 +60,7 @@ export const SubscribeProvider = ({ children }) => {
     try{
     setSubscriberData(prev => prev.filter(item => item.id !==id));
     }catch(e){
-      
+
     }
   }, []);
   // Context değerleri
