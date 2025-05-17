@@ -483,8 +483,8 @@ export default function VehicleEntryExit() {
     {/* Sol Panel - Araç Girişi */}
     <div className="w-full md:w-1/3 bg-white rounded-xl shadow-md p-6">
     <div className="rounded bg-gray-300 grid grid-cols-2 p-1 mb-4">
-    <button onClick={()=>setStatusPanel("giris")} className={`${statusPanel ==="giris" ? "bg-gray-100 text-black" : ""} rounded cursor-pointer`}>Giriş</button>
-    <button onClick={()=>setStatusPanel("cikis")} className={`${statusPanel ==="cikis" ? "bg-gray-100 text-black" : ""} rounded cursor-pointer`}>Çıkış</button>
+    <button onClick={()=>setStatusPanel("giris")} className={`${statusPanel ==="giris" ? "bg-gray-100 text-black" : "text-black"} rounded cursor-pointer`}>Giriş</button>
+    <button onClick={()=>setStatusPanel("cikis")} className={`${statusPanel ==="cikis" ? "bg-gray-100 text-black" : "text-black"} rounded cursor-pointer`}>Çıkış</button>
     </div>
 
     {statusPanel ==="giris" ? (
