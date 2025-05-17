@@ -99,7 +99,6 @@ export default function VehicleEntryExit() {
     const sum = sumsnapshot.size || 0;
     setTotalDayVehicle(sum)
     const querySnapshot = await getDocs(q)
-    console.error(querySnapshot.size,vehiclesData?.length)
     if(vehiclesData&&querySnapshot.size===vehiclesData?.length) return;
       for(const doc of querySnapshot.docs){
         const StringID = doc.id.replace("autoID","");
@@ -177,7 +176,6 @@ export default function VehicleEntryExit() {
   };
 
   const processRowUpdate = (newRow) => {
-    console.error("NewRow",JSON.stringify(newRow))
    const updatedRow = { ...newRow, isNew: false };
    if(!newRow.id||!newRow.plate||!newRow.price||!newRow.joinDate){
     !newRow.id && toast.error("ID değeri boş bırakılamaz")

@@ -144,7 +144,6 @@ export default function SubscriptionManage() {
       return;
     }
     const createdYear = createdTime.getFullYear()
-    console.error(createdYear)
     const encodedEmail = email.replace(/\./g, '_dot_').replace('@','_q_');
     const date= getTurkeyDate()
     const plateRef = doc(dbfs,`admins/${encodedEmail}/years/year_${createdYear}/daily_payments/${date}/transactions/autoID${id}`)

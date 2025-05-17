@@ -27,12 +27,9 @@ export default function Header({setClickedTab}) {
         }
     },[session])
     useEffect(()=>{
-      try{
+      
       showTab()
-      setTab(pathname.split("/")[1]);
-      }catch(e){
-        console.error(e)
-      }
+      pathname ? setTab(pathname?.split("/")[1]):setTab("aracgiris");
     },[pathname])
     useEffect(()=>{
       const getSubData =async()=>{
@@ -57,7 +54,6 @@ export default function Header({setClickedTab}) {
           if(Date.now()>=oneMonthAfterDate){
             if(notifications.length > 0){
               const userExists = notifications.find(item=>item.namesurname === namesurname)
-              console.error(JSON.stringify(userExists))
               if(userExists) return
             }
             setNotifications((prev)=>[...prev, { id:subId,namesurname:namesurname,date:formattedJoinDate }])

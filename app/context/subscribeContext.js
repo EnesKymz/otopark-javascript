@@ -13,7 +13,7 @@ export const SubscribeProvider = ({ children }) => {
   // Daha güvenli araç ekleme fonksiyonu
   const addSubscriber = useCallback((newSub) => {
     if (!newSub?.namesurname) {
-      console.error('Plaka bilgisi eksik');
+      console.error('Abone bilgisi eksik');
       return false;
     }
     const ID = Number(newSub.id)
