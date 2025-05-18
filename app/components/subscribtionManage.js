@@ -60,13 +60,6 @@ export default function SubscriptionManage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isCikis,setIsCikis] = useState(null)
   const [encodedEmail,setEncodedEmail] = useState("")
-  function getTurkeyDate() {
-    const now = new Date();
-    const offset = 3 * 60 * 60 * 1000;
-    const turkeyTime = new Date(now.getTime() + offset);
-    
-    return turkeyTime.toISOString().split('T')[0]; // "2025-04-01"
-  }
   useEffect(()=>{
   async function getData () {
   try{
@@ -174,6 +167,9 @@ export default function SubscriptionManage() {
     !newRow.price && toast.error("Ücret değeri boş bırakılamaz")
     return;
    }
+   const namesurname = newRow.namesurname ||"Bulunamadı"
+   const phonenumber = newRow.phonenumber ||"Bulunamadı"
+
     updateSubscriber(newRow.id,newRow);
     const email = session?.user?.email
       if(!email){
@@ -185,8 +181,9 @@ export default function SubscriptionManage() {
     const plateRef = doc(dbfs,`admins/${encodedEmail}/subscriptions/sub${newRow.id}`)
     
     updateDoc(plateRef,{
-        "details.namesurname":newRow.namesurname,
+        "details.namesurname":namesurname,
         "details.joinDate":stringTime,
+        "details.phonenumber":phonenumber,
         "details.price":newRow.price,
     },{merge:true})
     return updatedRow;
