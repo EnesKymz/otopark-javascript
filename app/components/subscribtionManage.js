@@ -187,7 +187,6 @@ export default function SubscriptionManage() {
     
       
     const plateRef = doc(dbfs,`admins/${encodedEmail}/subscriptions/sub${newRow.id}`)
-    console.error(JSON.stringify(newEdit))
     updateDoc(plateRef,newEdit,{merge:true})
     return updatedRow;
   };
