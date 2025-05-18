@@ -167,25 +167,28 @@ export default function SubscriptionManage() {
     !newRow.price && toast.error("Ücret değeri boş bırakılamaz")
     return;
    }
-   const namesurname = newRow.namesurname ||"Bulunamadı"
-   const phonenumber = newRow.phonenumber ||"Bulunamadı"
+   const email = session?.user?.email
+    if(!email){
+      return;
+    }
+    const encodedEmail = email.replace(/\./g, '_dot_').replace('@','_q_');
+    const newDate = new Date(new Date(newRow.joinDate).toLocaleString("en-US", { timeZone: "Europe/Istanbul" }));
+    const stringTime = newDate.toISOString();
+   const editedSub = subscribeData?.find(item=>item.id===newRow.id)
+   let newEdit = {}
+  
+   if(newRow.namesurname !== editedSub.namesurname) newEdit["details.namesurname"] = newRow.namesurname;
+   if(newRow.phonenumber !== editedSub.phonenumber) newEdit["details.phonenumber"] = newRow.phonenumber;
+   if(newRow.price !== editedSub.price) newEdit["details.price"] = newRow.price;
+   if(newRow.joinDate !== editedSub.joinDate) newEdit["details.joinDate"] = stringTime;
+
 
     updateSubscriber(newRow.id,newRow);
-    const email = session?.user?.email
-      if(!email){
-        return;
-      }
-      const encodedEmail = email.replace(/\./g, '_dot_').replace('@','_q_');
-      const newDate = new Date(new Date(newRow.joinDate).toLocaleString("en-US", { timeZone: "Europe/Istanbul" }));
-      const stringTime = newDate.toISOString();
-    const plateRef = doc(dbfs,`admins/${encodedEmail}/subscriptions/sub${newRow.id}`)
     
-    updateDoc(plateRef,{
-        "details.namesurname":namesurname,
-        "details.joinDate":stringTime,
-        "details.phonenumber":phonenumber,
-        "details.price":newRow.price,
-    },{merge:true})
+      
+    const plateRef = doc(dbfs,`admins/${encodedEmail}/subscriptions/sub${newRow.id}`)
+    console.error(JSON.stringify(newEdit))
+    updateDoc(plateRef,newEdit,{merge:true})
     return updatedRow;
   };
 
