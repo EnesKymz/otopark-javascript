@@ -8,7 +8,6 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import Loader from "./components/animations/loader";
 import { SubscribeProvider } from "./context/subscribeContext";
-import ConnectionStatus from "./components/connectionStatus";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,6 +31,19 @@ export default function RootLayout({ children }) {
         <AuthProvider>
         <DataProvider>
           <SubscribeProvider>
+          {pathname==="/aracgiris" ? (
+            <title>Araç Giriş</title>
+          ):pathname ==="/" ?
+          (<title>Giriş Yap</title>)
+          :pathname==="/aboneyonetimi" ?
+          (<title>Abone Yönetimi</title>)
+          :pathname==="/anasayfa" ? 
+          (<title>Ana Sayfa</title>)
+          :pathname==="/ayarlar" ? 
+          (<title>Ayarlar</title>): 
+          (<title>Sayfa</title>)
+          }
+          
           { pathname !=="/"&&
             <Header setClickedTab={setClickedTab}/>
           }
