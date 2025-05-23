@@ -12,14 +12,13 @@ export default function Dashboard() {
     const router = useRouter()
     const [checkDevice,setDevice] = useState("");
     const [authIdPass,setAuthIdPass] = useState({email:"",password:""})
-    const handleLogin = async(e) => {
+    const handleLogin = async() => {
       const defaultEmail = authIdPass.email
       if(!defaultEmail||!defaultEmail.includes("@")) return toast.error("Geçersiz eposta adresi")
       const email = defaultEmail.replace(/\./g, '_dot_').replace('@','_q_');
       if(!email) return toast.error("Geçersiz eposta adresi")
       const password = authIdPass.password
       const mystr= crypto.createHash("sha256").update(password).digest("hex");
-      console.error(mystr)
       if(!password||password==="") return toast.error("Geçerli şifre giriniz")
       const result = await signIn('credentials',{
         redirect:false,

@@ -1,12 +1,9 @@
 'use server';
-import { userAgent } from 'next/server';
-import { headers } from 'next/headers';
 
 const deviceTypeDetector = async () => {
     // Await the headers() function
-    const headerValues = await headers();
-    const { device } = userAgent({ headers: headerValues });
-    const deviceType = device?.type === "mobile" ? "mobile" : "desktop";
+      const ua = navigator.userAgent.toLowerCase();
+    const deviceType = ua.includes("webview") ? "mobile" : "desktop";
     return deviceType;
 };
 
