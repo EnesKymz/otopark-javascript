@@ -1,25 +1,13 @@
-// app/utils/deviceDetector.ts
 'use server';
-
+import { userAgent } from 'next/server';
 import { headers } from 'next/headers';
 
-const deviceTypeDetector = async ()=> {
-  const userAgent = headers().get('user-agent') || '';
-  
-  // WebView kontrolü
-  const isWebView = /(WebView|FBAN|Instagram|Line|Twitter|WhatsApp)/i.test(userAgent);
-  
-  // Mobil cihaz kontrolü
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
-  
-  let deviceType = ""
-  
-  if (isWebView || isMobile) {
-    deviceType = 'mobile';
-  } else {
-    deviceType = 'desktop';
-  }
-  
-  return deviceType;
+const deviceTypeDetector = async () => {
+    // Await the headers() function
+    const headerValues = await headers();
+    const { device } = userAgent({ headers: headerValues });
+    const deviceType = device?.type === "mobile" ? "mobile" : "desktop";
+    return deviceType;
 };
-export default deviceTypeDetector
+
+export default deviceTypeDetector;
