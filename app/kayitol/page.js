@@ -8,7 +8,9 @@ import { dbfs } from "../firebase/firebaseConfig";
 import toast from "react-hot-toast";
 import crypto from "crypto"
 import { useRouter } from "next/navigation";
-import { getAuth } from "firebase/auth";
+import { createUserWithEmailAndPassword, getAuth } from "firebase/auth";
+import Loader from "../components/animations/loader";
+import { BarLoader } from "react-spinners";
 
 export default function Kayit() {
     const {data:session} = useSession()
@@ -22,7 +24,9 @@ export default function Kayit() {
     const [checkDevice,setCheckDevice] =useState("mobile")
     const [error,setError] = useState("")
     const [authIdPass,setAuthIdPass] = useState({email:"",password:"",passwordagain:"",namesurname:""})
+    const [buttonDisabled,setButtonDisabled] = useState(false) 
     const handleRegister=async()=>{
+      setButtonDisabled(true)
         const email = authIdPass.email
         const password = authIdPass.password
         const namesurname = authIdPass.namesurname
@@ -48,12 +52,13 @@ export default function Kayit() {
         if(snapshotUser.exists()){
         setError("Bu eposta adresine sahip kullanıcı var.")
         }else{
-            const userCredential = await createUserWithEmailAndPassword(auth, email, mystr);
             setDoc(userRef,{
                 namesurname:namesurname,
                 password:encodedPassword
             },{merge:true})
+            const userCredential = await createUserWithEmailAndPassword(auth, email, mystr);
             handleLogin()
+            setButtonDisabled(true)
         }
     }
     const handleLogin = async() => {
@@ -177,7 +182,7 @@ export default function Kayit() {
                   className="bg-white shadow shadow-gray-400 w-full h-10 rounded-lg mb-3"
                   ></Input>
                   <h1 className="text-red-500">{error}</h1>
-                  <button onClick={()=>handleRegister()} className="bg-indigo-500 shadow shadow-gray-400 rounded-lg w-full text-white p-3 text-lg cursor-pointer">Giriş Yap</button>
+                  <button disabled={buttonDisabled} onClick={()=>handleRegister()} className="bg-indigo-500 shadow shadow-gray-400 rounded-lg w-full text-white p-3 text-lg cursor-pointer">Kayıt Ol</button>
               </div>
             
           
@@ -188,9 +193,12 @@ export default function Kayit() {
         {session && (
           <div className="text-center space-y-4">
             <div className="p-4 bg-green-50 rounded-lg border-l-4 border-green-500">
+              <div className="flex flex-col items-center">
               <p className="font-medium text-green-700">
                 Merhaba, <span className="font-semibold">{session.user?.name}</span>
               </p>
+              <BarLoader color="#98fb98"/>
+              </div>
             </div>
             <button
               onClick={() => signOut()}
