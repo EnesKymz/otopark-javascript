@@ -17,7 +17,7 @@ export default function Kayit() {
         router.push("/aracgiris")
       }
     },[session])
-    const [checkDevice,setCheckDevice] =useState("")
+    const [checkDevice,setCheckDevice] =useState("mobile")
     const [error,setError] = useState("")
     const [authIdPass,setAuthIdPass] = useState({email:"",password:"",passwordagain:"",namesurname:""})
     const handleRegister=async()=>{
@@ -32,8 +32,11 @@ export default function Kayit() {
         if(password!==authIdPass.passwordagain){
         setError("Şifreler aynı değil")
         return;
+        }else if(password.length<6){
+        setError("Şifreniz 6 karakterden uzun olmalıdır.")
+        return;
         }else{
-        setError("")
+          setError("")
         }
         const encodedEmail = email.replace(/\./g, '_dot_').replace('@','_q_');
         const userRef = doc(dbfs,"admins",encodedEmail)

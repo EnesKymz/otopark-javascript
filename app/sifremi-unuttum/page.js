@@ -20,7 +20,7 @@ export default function SifremiUnuttum() {
           window.location.href="/"
         })
         .catch((error) => {
-          alert("Bir hata oluştu: " + error.message);
+          toast.error("Bir hata oluştu");
         });
     };
     const {data:session} = useSession()
@@ -30,7 +30,7 @@ export default function SifremiUnuttum() {
         router.push("/aracgiris")
       }
     },[session])
-    const [checkDevice,setCheckDevice] =useState("")
+    const [checkDevice,setCheckDevice] =useState("mobile")
     const [error,setError] = useState("")
     const IdPasswordSave = (value) => {
       
