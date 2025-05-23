@@ -5,10 +5,11 @@ import AuthProvider from "@/components/sessionProvider";
 import { DataProvider } from "./context/dataContext";
 import Header from "./components/header";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Loader from "./components/animations/loader";
 import { SubscribeProvider } from "./context/subscribeContext";
 import toast, { ToastBar, Toaster } from "react-hot-toast";
+import deviceTypeDetector from "./utils/deviceDetection";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,6 +25,15 @@ const geistMono = Geist_Mono({
 export default function RootLayout({ children }) {
   const pathname = usePathname()
   const [clickedTab,setClickedTab] = useState(true)
+  const [checkDevice,setCheckDevice] = useState("mobile")
+  
+  useEffect(()=>{
+  const CheckDevice =async()=>{
+  const device = await deviceTypeDetector()
+  setCheckDevice("mobile")
+    }
+  CheckDevice()
+  },[])
   return (
     <html lang="en">
       <body
@@ -51,8 +61,19 @@ export default function RootLayout({ children }) {
           :(<title>Sayfa</title>)
           }
           
-          { !["/", "/kayitol", "/sifremi-unuttum","/sifreyenileme"].includes(pathname)&&
-            (<Header setClickedTab={setClickedTab}/>)
+          { !["/", "/kayitol", "/sifremi-unuttum","/sifreyenileme"].includes(pathname)?
+            (<Header setClickedTab={setClickedTab}/>):(checkDevice==="mobile"&&
+            (<button
+             className="absolute bg-white rounded-4xl w-auto h-auto p-3 cursor-pointer m-4"
+             onClick={()=>history.back()}><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 48 48">
+            <rect width="48" height="48" fill="none" />
+            <defs>
+              <mask id="ipTBack0">
+                <path fill="#555555" fillRule="evenodd" stroke="#fff" strokeLinejoin="round" strokeWidth="4" d="M44 40.836q-7.34-8.96-13.036-10.168t-10.846-.365V41L4 23.545L20.118 7v10.167q9.523.075 16.192 6.833q6.668 6.758 7.69 16.836Z" clipRule="evenodd" />
+              </mask>
+            </defs>
+            <path fill="#0053ff" d="M0 0h48v48H0z" mask="url(#ipTBack0)" />
+          </svg></button>))
           } 
           {clickedTab ? (<div>
             {/* Toast Bildirimleri */}

@@ -38,7 +38,7 @@ export default function Header({setClickedTab}) {
     useEffect(()=>{
       const getSubData =async()=>{
       const checkDevice = await deviceTypeDetector()
-      setDevice(checkDevice)
+      setDevice("mobile")
       if(session){
         const email = session.user.email
         const encodeMail = email.replace(/\./g, '_dot_').replace('@','_q_');
@@ -139,14 +139,27 @@ export default function Header({setClickedTab}) {
           <div className="flex justify-between items-center h-16">
             {/* Sol Taraf - Navigasyon */}
             {device&&device==="mobile"&&(
-              <div onClick={()=>setMobileMenu(!mobileMenu)} className="flex items-center space-x-8">
+              <div className="flex">
+              <button
+              className="flex space-x-8 bg-white rounded-4xl w-auto h-auto cursor-pointer"
+              onClick={()=>history.back()}><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 48 48">
+              <rect width="48" height="48" fill="none" />
+              <defs>
+                <mask id="ipTBack0">
+                  <path fill="#555555" fillRule="evenodd" stroke="#fff" strokeLinejoin="round" strokeWidth="4" d="M44 40.836q-7.34-8.96-13.036-10.168t-10.846-.365V41L4 23.545L20.118 7v10.167q9.523.075 16.192 6.833q6.668 6.758 7.69 16.836Z" clipRule="evenodd" />
+                </mask>
+              </defs>
+              <path fill="#0053ff" d="M0 0h48v48H0z" mask="url(#ipTBack0)" />
+            </svg></button>
+              <div onClick={()=>setMobileMenu(!mobileMenu)} className="flex items-center ml-4">
               <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 16 16">
                 <rect width="16" height="16" fill="none" />
                 <path fill="#0053ff" stroke="#0053ff" stroke-linecap="round" stroke-width="2" d="M2 4h12M2 8h12M2 12h12" />
               </svg>
             </div>
+            </div>
             )}
-            <div className="flex items-center space-x-8">
+            <div className="flex items-center space-x-8 ml-4">
               <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 48 48"
               className="h-9 w-9 text-indigo-600 transform transition-transform hover:rotate-12"
               >
