@@ -8,10 +8,12 @@ import { dbfs } from "../firebase/firebaseConfig";
 import toast from "react-hot-toast";
 import crypto from "crypto"
 import { useRouter } from "next/navigation";
+import { getAuth } from "firebase/auth";
 
 export default function Kayit() {
     const {data:session} = useSession()
     const router = useRouter()
+    const auth = getAuth()
     useEffect(()=>{
       if(session){
         router.push("/aracgiris")
