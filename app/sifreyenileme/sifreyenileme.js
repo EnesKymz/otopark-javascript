@@ -33,11 +33,12 @@ export default function SifreYenileme() {
     const userRef = doc(dbfs,"admins",encodedEmail)
     const snapshot = await getDoc(userRef)
     const newPassword= crypto.createHash("sha256").update(password).digest("hex");
-    await confirmPasswordReset(auth, oobCode, newPassword);
+    console.error(newPassword)
     if(snapshot.exists()){
         setDoc(userRef,{
             password:newPassword
         },{merge:true})
+        await confirmPasswordReset(auth, oobCode, newPassword);
         toast.success("Şifreniz güncellendi!");
         window.location.href="/"
     }else{

@@ -26,6 +26,7 @@ export const authOptions = {
           const namesurname = userSnapshot.data()&&userSnapshot.data().namesurname
           const dbPassword = userSnapshot.data().password
           const mystr= crypto.createHash("sha256").update(password).digest("hex");
+          console.error(mystr)
           if(mystr!==dbPassword){
             throw new Error("Şifre hatalı lütfen tekrar deneyiniz.")
           }
