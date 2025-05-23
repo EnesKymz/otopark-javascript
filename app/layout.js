@@ -41,11 +41,17 @@ export default function RootLayout({ children }) {
           :pathname==="/anasayfa" ? 
           (<title>Ana Sayfa</title>)
           :pathname==="/ayarlar" ? 
-          (<title>Ayarlar</title>): 
-          (<title>Sayfa</title>)
+          (<title>Ayarlar</title>)
+          :pathname==="/kayitol" ? 
+          (<title>Kayıt Ol</title>)
+          :pathname==="/sifremi-unuttum" ? 
+          (<title>Şifremi Unuttum</title>)
+          :pathname==="/sifreyenileme" ? 
+          (<title>Şifre Yenile</title>)
+          :(<title>Sayfa</title>)
           }
           
-          { !["/", "/kayitol", "/sifremi-unuttum"].includes(pathname)&&
+          { !["/", "/kayitol", "/sifremi-unuttum","/sifreyenileme"].includes(pathname)&&
             (<Header setClickedTab={setClickedTab}/>)
           } 
           {clickedTab ? (<div>

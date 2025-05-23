@@ -50,7 +50,7 @@ export default function Kayit() {
             handleLogin()
         }
     }
-    const handleLogin = async(e) => {
+    const handleLogin = async() => {
       const defaultEmail = authIdPass.email
       if(!defaultEmail||!defaultEmail.includes("@")) return toast.error("Geçersiz eposta adresi")
       const email = defaultEmail.replace(/\./g, '_dot_').replace('@','_q_');
@@ -58,6 +58,7 @@ export default function Kayit() {
       const password = authIdPass.password
     
       if(!password||password==="") return toast.error("Geçerli şifre giriniz")
+      if(password.length<6) return toast.error("Şifreniz 6 karakterden uzun olmalıdır")
       const result = await signIn('credentials',{
         redirect:false,
         email,

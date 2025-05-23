@@ -18,7 +18,6 @@ export default function Dashboard() {
       const email = defaultEmail.replace(/\./g, '_dot_').replace('@','_q_');
       if(!email) return toast.error("Geçersiz eposta adresi")
       const password = authIdPass.password
-      const mystr= crypto.createHash("sha256").update(password).digest("hex");
       if(!password||password==="") return toast.error("Geçerli şifre giriniz")
       const result = await signIn('credentials',{
         redirect:false,
@@ -36,7 +35,7 @@ export default function Dashboard() {
     };
     useEffect(()=>{
       if(session){
-        //router.push("/aracgiris")
+        router.push("/aracgiris")
       }
     },[session])
     useEffect(()=>{
@@ -46,6 +45,9 @@ export default function Dashboard() {
       }
       CheckDevice()
     },[])
+    
+
+    
     const IdPasswordSave = (value) => {
       if ((authIdPass.email === undefined)||(authIdPass.password ===undefined)) {
         return toast.error("Hatalı giriş");
@@ -98,7 +100,7 @@ export default function Dashboard() {
                 <button
                   onClick={() => signIn("google")}
                   className="w-full flex items-center justify-center space-x-3 bg-white border border-gray-300 rounded-lg py-3 px-4 
-                            hover:bg-gray-50 hover:border-gray-400 active:bg-gray-100 transition-colors duration-200"
+                            hover:bg-gray-50 hover:border-gray-400 active:bg-gray-100 transition-colors duration-200 mb-5"
                 >
                   <svg
                     className="w-5 h-5"
@@ -127,6 +129,7 @@ export default function Dashboard() {
                   onChange={(e)=>IdPasswordSave({password:e.target.value})}
                   className="bg-white shadow shadow-gray-400 w-full h-10 rounded-lg mb-3"
                   ></Input>
+                  <button tabIndex={-2} onClick={()=>window.location.href="/sifremi-unuttum"} className="flex ml-auto text-blue-600 hover:text-blue-700 transition-colors cursor-pointer ">Şifremi Unuttum</button>
                   <button tabIndex={-1} onClick={()=>window.location.href="/kayitol"} className="flex ml-auto text-blue-600 hover:text-blue-700 transition-colors cursor-pointer ">Kayıt Ol</button>
                   <button onClick={()=>handleLogin()} className="bg-indigo-500 shadow shadow-gray-400 rounded-lg w-full text-white p-3 text-lg ">Giriş Yap</button>
               </div>
