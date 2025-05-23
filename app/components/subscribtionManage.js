@@ -559,29 +559,7 @@ export default function SubscriptionManage() {
     </div>
   </div>
 
-  {/* Toast Bildirimleri */}
-  <Toaster position="top-right">
-    {(t) => (
-      <ToastBar toast={t}>
-        {({ icon, message }) => (
-          <div className={`flex items-center p-3 rounded-lg shadow-lg ${
-            t.type === 'success' ? 'bg-green-100 text-green-800' :
-            t.type === 'error' ? 'bg-red-100 text-red-800' :
-            'bg-blue-100 text-blue-800'
-          }`}>
-            {icon}
-            <span className="mx-2">{message}</span>
-            <button 
-              onClick={() => toast.dismiss(t.id)}
-              className="ml-auto text-gray-500 hover:text-gray-700"
-            >
-              ×
-            </button>
-          </div>
-        )}
-      </ToastBar>
-    )}
-  </Toaster>
+  
 </div>
   )
 }

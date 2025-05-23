@@ -8,6 +8,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import Loader from "./components/animations/loader";
 import { SubscribeProvider } from "./context/subscribeContext";
+import { ToastBar, Toaster } from "react-hot-toast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -47,7 +48,31 @@ export default function RootLayout({ children }) {
           { pathname !=="/"&&
             <Header setClickedTab={setClickedTab}/>
           }
-          {clickedTab ? children : <Loader/>}
+          {clickedTab ? (<div>
+            {/* Toast Bildirimleri */}
+            <Toaster position="top-right">
+              {(t) => (
+                <ToastBar toast={t}>
+                  {({ icon, message }) => (
+                    <div className={`flex items-center p-3 rounded-lg shadow-lg ${
+                      t.type === 'success' ? 'bg-green-100 text-green-800' :
+                      t.type === 'error' ? 'bg-red-100 text-red-800' :
+                      'bg-blue-100 text-blue-800'
+                    }`}>
+                      {icon}
+                      <span className="mx-2">{message}</span>
+                      <button 
+                        onClick={() => toast.dismiss(t.id)}
+                        className="ml-auto text-gray-500 hover:text-gray-700"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  )}
+                </ToastBar>
+              )}
+            </Toaster>
+  {children}</div>) : <Loader/>}
           </SubscribeProvider>
         </DataProvider>
         </AuthProvider>
