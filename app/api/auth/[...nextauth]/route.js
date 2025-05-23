@@ -29,7 +29,7 @@ export const authOptions = {
           if(mystr!==dbPassword){
             throw new Error("Şifre hatalı lütfen tekrar deneyiniz.")
           }
-          const userCredential = await signInWithEmailAndPasswordy(auth, defaultEmail, mystr);
+          const userCredential = await signInWithEmailAndPassword(auth, defaultEmail, mystr);
           return {
             id: "1",
             name: namesurname,

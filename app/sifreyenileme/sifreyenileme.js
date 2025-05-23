@@ -49,12 +49,6 @@ export default function SifreYenileme() {
     }
   };
     const {data:session} = useSession()
-    const router = useRouter()
-    useEffect(()=>{
-      if(session){
-        router.push("/aracgiris")
-      }
-    },[session])
     const IdPasswordSave = (value) => {
       
       setAuthIdPass((prev) => ({
