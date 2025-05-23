@@ -35,10 +35,10 @@ export default function SifreYenileme() {
     const snapshot = await getDoc(userRef)
     const newPassword= crypto.createHash("sha256").update(password).digest("hex");
     if(snapshot.exists()){
+        await confirmPasswordReset(auth,oobCode,newPassword)
         setDoc(userRef,{
             password:newPassword
         },{merge:true})
-        await confirmPasswordReset(auth,oobCode,newPassword)
         toast.success("Şifreniz güncellendi!");
         window.location.href="/"
     }else{
