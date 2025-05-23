@@ -30,7 +30,7 @@ export default function RootLayout({ children }) {
   useEffect(()=>{
   const CheckDevice =async()=>{
   const device = await deviceTypeDetector()
-  setCheckDevice(device)
+  setCheckDevice("mobile")
   }
   CheckDevice()
   },[])
@@ -62,7 +62,7 @@ export default function RootLayout({ children }) {
           }
           
           { !["/", "/kayitol", "/sifremi-unuttum","/sifreyenileme"].includes(pathname)?
-            (<Header setClickedTab={setClickedTab}/>):(checkDevice==="mobile"&&
+            (<Header setClickedTab={setClickedTab}/>):(checkDevice==="mobile"&&["/kayitol", "/sifremi-unuttum","/sifreyenileme"].includes(pathname)&&
             (<button
              className="absolute bg-white rounded-4xl w-auto h-auto p-3 cursor-pointer m-4"
              onClick={()=>history.back()}><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 48 48">
