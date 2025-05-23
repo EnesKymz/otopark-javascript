@@ -3,10 +3,12 @@ import { userAgent } from 'next/server';
 import { headers } from 'next/headers';
 
 const deviceTypeDetector = async () => {
-    // Await the headers() function
-    const headerValues = await headers();
-    const { device } = userAgent({ headers: headerValues });
-    const deviceType = device
+   const userAgent = req.headers['user-agent'] || '';
+    const isWebView = /(WebView|Facebook|Instagram|Line|Twitter|WhatsApp)/i.test(userAgent);
+    let deviceType = ""
+    if(isWebView){
+        deviceType = "mobile"
+    }
     return deviceType;
 };
 
