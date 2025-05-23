@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
-import { confirmPasswordReset, getAuth, verifyPasswordResetCode } from "firebase/auth";
+import { confirmPasswordReset, getAuth, updatePassword, verifyPasswordResetCode } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { dbfs } from "../firebase/firebaseConfig";
 import crypto from "crypto"
@@ -38,6 +38,7 @@ export default function SifreYenileme() {
         setDoc(userRef,{
             password:newPassword
         },{merge:true})
+        await confirmPasswordReset(auth,oobCode,newPassword)
         toast.success("Şifreniz güncellendi!");
         window.location.href="/"
     }else{
