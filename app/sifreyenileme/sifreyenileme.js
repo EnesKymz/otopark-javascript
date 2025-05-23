@@ -30,12 +30,11 @@ export default function SifreYenileme() {
      if(!email){
         return toast.error("Şifre yenileme hatası");
      }
-    await confirmPasswordReset(auth, oobCode, password);
     const userRef = doc(dbfs,"admins",encodedEmail)
     const snapshot = await getDoc(userRef)
     const newPassword= crypto.createHash("sha256").update(password).digest("hex");
+    await confirmPasswordReset(auth, oobCode, newPassword);
     if(snapshot.exists()){
-        await confirmPasswordReset(auth,oobCode,newPassword)
         setDoc(userRef,{
             password:newPassword
         },{merge:true})
