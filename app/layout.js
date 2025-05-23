@@ -25,12 +25,12 @@ const geistMono = Geist_Mono({
 export default function RootLayout({ children }) {
   const pathname = usePathname()
   const [clickedTab,setClickedTab] = useState(true)
-  const [checkDevice,setCheckDevice] = useState("mobile")
+  const [checkDevice,setCheckDevice] = useState("")
   
   useEffect(()=>{
   const CheckDevice =async()=>{
   const device = await deviceTypeDetector()
-  setCheckDevice("mobile")
+  setCheckDevice(device)
     }
   CheckDevice()
   },[])

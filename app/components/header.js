@@ -38,7 +38,7 @@ export default function Header({setClickedTab}) {
     useEffect(()=>{
       const getSubData =async()=>{
       const checkDevice = await deviceTypeDetector()
-      setDevice("mobile")
+      setDevice(checkDevice)
       if(session){
         const email = session.user.email
         const encodeMail = email.replace(/\./g, '_dot_').replace('@','_q_');
