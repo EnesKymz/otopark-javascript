@@ -8,7 +8,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import Loader from "./components/animations/loader";
 import { SubscribeProvider } from "./context/subscribeContext";
-import { ToastBar, Toaster } from "react-hot-toast";
+import toast, { ToastBar, Toaster } from "react-hot-toast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -45,9 +45,9 @@ export default function RootLayout({ children }) {
           (<title>Sayfa</title>)
           }
           
-          { pathname !=="/"&&
-            <Header setClickedTab={setClickedTab}/>
-          }
+          { !["/", "/kayitol", "/sifremi-unuttum"].includes(pathname)&&
+            (<Header setClickedTab={setClickedTab}/>)
+          } 
           {clickedTab ? (<div>
             {/* Toast Bildirimleri */}
             <Toaster position="top-right">
@@ -72,7 +72,7 @@ export default function RootLayout({ children }) {
                 </ToastBar>
               )}
             </Toaster>
-  {children}</div>) : <Loader/>}
+            {children}</div>) : <Loader/>}
           </SubscribeProvider>
         </DataProvider>
         </AuthProvider>
