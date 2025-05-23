@@ -82,7 +82,6 @@ export default function Dashboard() {
         <h2 className="text-2xl font-bold text-center text-gray-800 mb-8">
           Hesabınıza Giriş Yapın
         </h2>
-        {JSON.stringify(checkDevice)}
         {/* Hata Mesajı */}
         {error && (
           <div className="mb-6 p-3 bg-red-50 text-red-700 text-sm rounded-lg border-l-4 border-red-500">
