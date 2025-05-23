@@ -16,7 +16,7 @@ export default function SifremiUnuttum() {
       }
       sendPasswordResetEmail(auth,email)
         .then(() => {
-          toast.success("Şifre sıfırlama maili gönderildi. Lütfen e-postanı kontrol et.");
+          alert("Şifre sıfırlama maili gönderildi. Lütfen e-postanı kontrol et.");
           window.location.href="/"
         })
         .catch((error) => {

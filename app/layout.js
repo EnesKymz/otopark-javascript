@@ -31,7 +31,7 @@ export default function RootLayout({ children }) {
   const CheckDevice =async()=>{
   const device = await deviceTypeDetector()
   setCheckDevice(device)
-    }
+  }
   CheckDevice()
   },[])
   return (
