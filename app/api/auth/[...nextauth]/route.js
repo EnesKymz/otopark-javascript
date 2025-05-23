@@ -4,6 +4,8 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import crypto from "crypto"
+import { createUserWithEmailAndPassword, getAuth, signInWithEmailAndPassword } from "firebase/auth";
+const auth = getAuth()
 export const authOptions = {
   providers: [
     GoogleProvider({
@@ -27,6 +29,7 @@ export const authOptions = {
           if(mystr!==dbPassword){
             throw new Error("Şifre hatalı lütfen tekrar deneyiniz.")
           }
+          const userCredential = await signInWithEmailAndPasswordy(auth, defaultEmail, mystr);
           return {
             id: "1",
             name: namesurname,

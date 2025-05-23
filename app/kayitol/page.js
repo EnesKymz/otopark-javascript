@@ -46,10 +46,11 @@ export default function Kayit() {
         if(snapshotUser.exists()){
         setError("Bu eposta adresine sahip kullanıcı var.")
         }else{
+            const userCredential = await createUserWithEmailAndPassword(auth, email, mystr);
             setDoc(userRef,{
                 namesurname:namesurname,
                 password:encodedPassword
-            })
+            },{merge:true})
             handleLogin()
         }
     }

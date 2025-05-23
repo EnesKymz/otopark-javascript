@@ -6,12 +6,14 @@ import deviceTypeDetector from "./utils/deviceDetection";
 import { Input } from "@mui/material";
 import toast from "react-hot-toast";
 import crypto from "crypto"
+import { createUserWithEmailAndPassword, getAuth } from "firebase/auth";
 export default function Dashboard() {
     const { data: session } = useSession();
     const [error, setError] = useState("");
     const router = useRouter()
     const [checkDevice,setDevice] = useState("mobile");
     const [authIdPass,setAuthIdPass] = useState({email:"",password:""})
+    const auth = getAuth()
     const handleLogin = async() => {
       const defaultEmail = authIdPass.email
       if(!defaultEmail||!defaultEmail.includes("@")) return toast.error("Geçersiz eposta adresi")
