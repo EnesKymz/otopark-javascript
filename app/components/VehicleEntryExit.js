@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { toast, ToastBar, Toaster } from "react-hot-toast"
 import { useSession } from "next-auth/react"
 import {dbfs} from "@/app/firebase/firebaseConfig";
@@ -41,6 +41,9 @@ export default function VehicleEntryExit() {
   const [isLoading, setIsLoading] = useState(true);
   const [isCikis,setIsCikis] = useState(null)
   const [encodedEmail,setEncodedEmail] = useState("")
+    const scrollToBottom = () => {
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+  };
   function getTurkeyDate() {
     const now = new Date();
     const offset = 3 * 60 * 60 * 1000;
@@ -357,6 +360,7 @@ export default function VehicleEntryExit() {
       const vehicleId = vehiclesData.find(item => item.plate === plate)?.id;
       if (vehicleId !== undefined) {
         ExitVehicle(vehicleId)();
+        scrollToBottom()
       }else{
         toast.success("Araç çıkışı yapılmış.")
       }
@@ -487,7 +491,7 @@ export default function VehicleEntryExit() {
     </div>
 
     {statusPanel ==="giris" ? (
-      <div className="overflow-x-auto h-110">
+      <div className="overflow-x-auto h-110 rounded-lg">
       <h2 className="text-xl font-semibold text-gray-800 mb-4">Araç Girişi</h2>
       
       <div className="space-y-4">

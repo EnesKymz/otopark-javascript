@@ -24,6 +24,7 @@ export default function Header({setClickedTab}) {
     const showTab = () => setClickedTab(true)
     const [device,setDevice] = useState("")
     const [mobileMenu,setMobileMenu] = useState(false);
+    
     useEffect(()=>{
         if(!session){
             window.location.href="/"
