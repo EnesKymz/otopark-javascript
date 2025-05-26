@@ -584,10 +584,10 @@ export default function VehicleEntryExit() {
           <h2 className="text-xl text-start font-semibold text-gray-800">Araç Listesi</h2>
           <div className="flex items-end text-end space-x-4">
             <span className="bg-indigo-500 text-white px-3 py-1 rounded-full text-sm">
-              Bugün: {totalDayVehicle} araç
+              Bugün: {totalDayPrice}₺
             </span>
             <span className="bg-indigo-500 text-white px-3 py-1 rounded-full text-sm">
-              Bugün: {totalDayPrice}₺
+              Bugün: {totalDayVehicle} araç
             </span>
           </div>
         </div>
