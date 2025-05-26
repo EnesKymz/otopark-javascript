@@ -62,6 +62,7 @@ export const DataProvider = ({ children }) => {
       vehicle.id === id ? { ...vehicle, ...updatedData } : vehicle
     ));
   }, []);
+
   const removeVehicle = useCallback((id) => {
     try{
     setTotalDayPrice(prev => {
@@ -74,8 +75,8 @@ export const DataProvider = ({ children }) => {
   
     setVehiclesData(prev => prev.filter(item => item.id !==id));
    
-    }catch{
-
+    }catch(error){
+      console.error('Araç silinirken hata oluştu:', error);
     }
   }, []);
   // Context değerleri
