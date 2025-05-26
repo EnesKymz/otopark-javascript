@@ -130,7 +130,7 @@ export default function Header({setClickedTab}) {
     }finally{
       const subId = id.replace("sub","");
       removeSubscriber(subId)
-      notifications.length>0 && setNotifications(prev => prev.filter(item => item.id !==id));
+      notifications && notifications.length>0 && setNotifications(prev => prev?.filter(item => item.id !==id));
       toast.success(`${namesurname} adlı kullanıcının aboneliği başarıyla yenilendi`)    } 
     }
     return (

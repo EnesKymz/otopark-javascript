@@ -58,7 +58,7 @@ export const SubscribeProvider = ({ children }) => {
   }, []);
   const removeSubscriber = useCallback((id) => {
     try{
-    setSubscriberData(prev => prev.filter(item => item.id !==id));
+    setSubscriberData(prev => prev?.filter(item => item.id !==id));
     }catch(e){
 
     }
