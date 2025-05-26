@@ -7,13 +7,15 @@ import { Input } from "@mui/material";
 import toast from "react-hot-toast";
 import crypto from "crypto"
 import { createUserWithEmailAndPassword, getAuth } from "firebase/auth";
+import { BarLoader } from "react-spinners";
 export default function Dashboard() {
-    const { data: session } = useSession();
+    const { data: session,status } = useSession();
     const [error, setError] = useState("");
     const router = useRouter()
     const [checkDevice,setDevice] = useState("mobile");
     const [authIdPass,setAuthIdPass] = useState({email:"",password:""})
     const auth = getAuth()
+    const loading = false;
     const handleLogin = async() => {
       const defaultEmail = authIdPass.email
       if(!defaultEmail||!defaultEmail.includes("@")) return toast.error("Geçersiz eposta adresi")
@@ -37,7 +39,7 @@ export default function Dashboard() {
     };
     useEffect(()=>{
       if(session){
-        router.push("/aracgiris")
+       // router.push("/aracgiris")
       }
     },[session])
     useEffect(()=>{
@@ -95,6 +97,7 @@ export default function Dashboard() {
        
         {/* Google Giriş Butonu */}
         {!session && (
+          !status==="loading" ? (
            <div>
             {checkDevice!=="mobile" &&
             (
@@ -138,7 +141,7 @@ export default function Dashboard() {
             
           
           </div>
-        )}
+        ): (<div className="flex items-center justify-center"><BarLoader color="green"/></div>)) }
     
         {/* Giriş Yapıldığında */}
         {session && (
