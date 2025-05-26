@@ -23,6 +23,7 @@ export const DataProvider = ({ children }) => {
     const currentTime = new Date();
     const timeDiff = (currentTime.getTime() - vehicleTime.getTime());
     const timeDiffInDays = Math.round(timeDiff / (1000 * 3600 * 24))+1;
+    setTotalDayPrice(prev => prev + (newVehicle.price * timeDiffInDays))
     const formattedVehicle = {
       ...newVehicle,
       id: ID,

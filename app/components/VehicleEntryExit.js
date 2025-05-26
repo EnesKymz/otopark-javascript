@@ -109,14 +109,6 @@ export default function VehicleEntryExit() {
         const StringID = doc.id.replace("autoID","");
         const numberID = Number(StringID)
         addVehicle({id:numberID,...doc.data().details})
-        const vehicleTime = new Date(doc.data().details.joinDate)
-        const currentTime = new Date();
-        const timeDiff = (currentTime.getTime() - vehicleTime.getTime());
-        const timeDiffInDays = Math.round(timeDiff / (1000 * 3600 * 24))+1;
-        if(doc.data().details.price && doc.data().details.price >= 0 && timeDiffInDays > 0){
-            setTotalDayPrice(prev => prev + (doc.data().details.price * timeDiffInDays))
-
-        }
         setRecentActivity((prev) => [
         {
           plate: doc.data().details.plate,
