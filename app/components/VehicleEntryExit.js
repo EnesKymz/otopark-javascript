@@ -35,7 +35,9 @@ export default function VehicleEntryExit() {
     savedEmail,
     setSavedEmail,
     recentActivity,
-    setRecentActivity
+    setRecentActivity,
+    totalDayPrice, 
+    setTotalDayPrice
   } = useDataContext()
   const [rowModesModel, setRowModesModel] = useState({});
   const [isLoading, setIsLoading] = useState(true);
@@ -107,6 +109,11 @@ export default function VehicleEntryExit() {
         const StringID = doc.id.replace("autoID","");
         const numberID = Number(StringID)
         addVehicle({id:numberID,...doc.data().details})
+        const vehicleTime = new Date(doc.data().details.joinDate)
+        const currentTime = new Date();
+        const timeDiff = (currentTime.getTime() - vehicleTime.getTime());
+        const timeDiffInDays = Math.round(timeDiff / (1000 * 3600 * 24))+1;
+        setTotalDayPrice(prev => prev + (doc.data().details.price * timeDiffInDays))
         setRecentActivity((prev) => [
         {
           plate: doc.data().details.plate,
@@ -588,6 +595,9 @@ export default function VehicleEntryExit() {
           <div className="flex items-end text-end space-x-4">
             <span className="bg-indigo-500 text-white px-3 py-1 rounded-full text-sm">
               Bugün: {totalDayVehicle} araç
+            </span>
+            <span className="bg-indigo-500 text-white px-3 py-1 rounded-full text-sm">
+              Bugün: {totalDayPrice}₺
             </span>
           </div>
         </div>
