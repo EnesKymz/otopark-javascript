@@ -23,7 +23,6 @@ export const DataProvider = ({ children }) => {
     const currentTime = new Date();
     const timeDiff = (currentTime.getTime() - vehicleTime.getTime());
     const timeDiffInDays = Math.round(timeDiff / (1000 * 3600 * 24))+1;
-    setTotalDayPrice(prev => prev + (newVehicle.price * timeDiffInDays))
     const formattedVehicle = {
       ...newVehicle,
       id: ID,
@@ -43,6 +42,7 @@ export const DataProvider = ({ children }) => {
         toast.error(`Bu plaka zaten kayıtlı: ${formattedVehicle.plate}`);
         return prev;
       }else{
+        setTotalDayPrice(prev => prev + (newVehicle.price * timeDiffInDays))
         if(prev){
           return [...prev,formattedVehicle];
         }else{
