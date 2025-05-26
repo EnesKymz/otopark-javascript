@@ -195,17 +195,6 @@ export default function Header({setClickedTab}) {
                 >
                   Araç Girişi
                 </Link>
-                <Link
-                onClick={handleTabClick("aboneyonetimi")}
-                  href="/aboneyonetimi"
-                  className={`pb-1 px-1 font-medium transition-colors ${
-                    tab === "aboneyonetimi" 
-                      ? "text-indigo-600 border-b-2 border-indigo-600" 
-                      : "text-gray-500 hover:text-indigo-500"
-                  }`}
-                >
-                  Abone Yönetimi
-                </Link>
               </nav>
             </div>
             
