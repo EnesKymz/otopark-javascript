@@ -37,7 +37,6 @@ export default function VehicleEntryExit() {
     recentActivity,
     setRecentActivity,
     totalDayPrice, 
-    setTotalDayPrice
   } = useDataContext()
   const [rowModesModel, setRowModesModel] = useState({});
   const [isLoading, setIsLoading] = useState(true);
@@ -155,15 +154,11 @@ export default function VehicleEntryExit() {
     }
     const createdYear = createdTime.getFullYear()
     const encodedEmail = email.replace(/\./g, '_dot_').replace('@','_q_');
-    const date= getTurkeyDate()
+    const date= createdTime.toISOString().slice(0,10)
     const plateRef = doc(dbfs,`admins/${encodedEmail}/years/year_${createdYear}/daily_payments/${date}/transactions/autoID${id}`)
     deleteDoc(plateRef)
     const newTotal = totalDayVehicle-1
     setTotalDayVehicle(newTotal)
-    const summaryRef = doc(dbfs,`admins/${encodedEmail}/years/year_${createdYear}/daily_payments/${date}`);
-    updateDoc(summaryRef,{
-        "summary.count":newTotal
-    })
     toast.success(`${id} numaralı araç başarıyla silindi.`)
     }
   };

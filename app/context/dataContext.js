@@ -64,7 +64,16 @@ export const DataProvider = ({ children }) => {
   }, []);
   const removeVehicle = useCallback((id) => {
     try{
+    setTotalDayPrice(prev => {
+      const vehicleToRemove = vehiclesData?.find(item => item.id === id);
+      if (vehicleToRemove) {
+        return prev - (vehicleToRemove.price);
+      }
+      return prev;
+    })
+  
     setVehiclesData(prev => prev.filter(item => item.id !==id));
+   
     }catch{
 
     }
