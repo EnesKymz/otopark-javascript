@@ -305,7 +305,6 @@ export default function Header({setClickedTab}) {
             {[
               { href: "/anasayfa", label: "Ana Sayfa", key: "anasayfa" },
               { href: "/aracgiris", label: "Araç Girişi", key: "aracgiris" },
-              { href: "/aboneyonetimi", label: "Abone Yönetimi", key: "aboneyonetimi" },
             ].map(({ href, label, key }) => (
               <Link
                 key={key}
