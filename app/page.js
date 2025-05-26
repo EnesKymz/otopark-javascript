@@ -39,6 +39,7 @@ export default function Dashboard() {
       if(session){
         router.push("/aracgiris")
       }
+
     },[session])
     useEffect(()=>{
       const CheckDevice =async ()=>{
@@ -95,7 +96,7 @@ export default function Dashboard() {
        
         {/* Google Giriş Butonu */}
         {!session && (
-          !status==="loading" ? (
+          status==="unauthenticated" ||!status ==="loading" ? (
            <div>
             {checkDevice!=="mobile" &&
             (
