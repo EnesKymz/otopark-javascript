@@ -14,8 +14,6 @@ export default function Dashboard() {
     const router = useRouter()
     const [checkDevice,setDevice] = useState("mobile");
     const [authIdPass,setAuthIdPass] = useState({email:"",password:""})
-    const auth = getAuth()
-    const loading = false;
     const handleLogin = async() => {
       const defaultEmail = authIdPass.email
       if(!defaultEmail||!defaultEmail.includes("@")) return toast.error("Geçersiz eposta adresi")
@@ -39,7 +37,7 @@ export default function Dashboard() {
     };
     useEffect(()=>{
       if(session){
-       // router.push("/aracgiris")
+        router.push("/aracgiris")
       }
     },[session])
     useEffect(()=>{
