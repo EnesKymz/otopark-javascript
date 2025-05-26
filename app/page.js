@@ -5,8 +5,6 @@ import { useRouter } from "next/navigation";
 import deviceTypeDetector from "./utils/deviceDetection";
 import { Input } from "@mui/material";
 import toast from "react-hot-toast";
-import crypto from "crypto"
-import { createUserWithEmailAndPassword, getAuth } from "firebase/auth";
 import { BarLoader } from "react-spinners";
 export default function Dashboard() {
     const { data: session,status } = useSession();
@@ -120,18 +118,18 @@ export default function Dashboard() {
                 </button>
             )}
             <div>
-                  <h2>Email</h2>
+                  <h2 className="text-black">Email</h2>
                   <Input
                   value={authIdPass.email}
                   onChange={(e)=>IdPasswordSave({email:e.target.value})}
-                  className="bg-white shadow shadow-gray-400 w-full h-10 rounded-lg mb-3"
+                  className="bg-white shadow text-black shadow-gray-400 w-full h-10 rounded-lg mb-3"
                   ></Input>
-                  <h2>Şifre</h2>
+                  <h2 className="text-black">Şifre</h2>
                   <Input
                   type="password"
                   value={authIdPass.password}
                   onChange={(e)=>IdPasswordSave({password:e.target.value})}
-                  className="bg-white shadow shadow-gray-400 w-full h-10 rounded-lg mb-3"
+                  className="bg-white shadow text-black shadow-gray-400 w-full h-10 rounded-lg mb-3"
                   ></Input>
                   <button tabIndex={-2} onClick={()=>window.location.href="/sifremi-unuttum"} className="flex ml-auto text-blue-600 hover:text-blue-700 transition-colors cursor-pointer ">Şifremi Unuttum</button>
                   <button tabIndex={-1} onClick={()=>window.location.href="/kayitol"} className="flex ml-auto text-blue-600 hover:text-blue-700 transition-colors cursor-pointer ">Kayıt Ol</button>
