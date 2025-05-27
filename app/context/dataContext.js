@@ -42,7 +42,6 @@ export const DataProvider = ({ children }) => {
         toast.error(`Bu plaka zaten kayıtlı: ${formattedVehicle.plate}`);
         return prev;
       }else{
-        setTotalDayPrice(prev => prev + (newVehicle.price * timeDiffInDays))
         if(prev){
           return [...prev,formattedVehicle];
         }else{
