@@ -275,6 +275,7 @@ export default function VehicleEntryExit() {
       cikis:false,
      });
      setTotalDayVehicle(totalDayVehicle+1)
+      setTotalDayPrice(prev => prev + vehicleEntryPrice)
      setVehicleIndex(maxIdDB)
      addVehicle({
       id:maxIdDB+1,
