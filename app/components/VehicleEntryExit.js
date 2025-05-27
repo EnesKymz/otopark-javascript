@@ -330,7 +330,7 @@ export default function VehicleEntryExit() {
           time: new Date().toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" }),
         },
         ...prev.slice(0, 3),
-      ]);
+      ]); 
       setTotalDayPrice(prev => prev +isCikisNum)
       toast.success(`${selectedVehicle.plate} plakalı aracın çıkışı yapıldı`)
     }else{
