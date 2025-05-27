@@ -14,7 +14,7 @@ export default function Dashboard() {
     const [authIdPass,setAuthIdPass] = useState({email:"",password:""})
     const handleLogin = async() => {
       const emailRegex = authIdPass.email
-      const defaultEmail = emailRegex.trim().toLocaleLowerCase()
+      const defaultEmail = emailRegex.trim().toLocaleLowerCase().replace("I","i").replace("İ","i").replace("ı","i").replace("i","i").replace(" ","");
       if(!defaultEmail||!defaultEmail.includes("@")) return toast.error("Geçersiz eposta adresi")
       const email = defaultEmail.replace(/\./g, '_dot_').replace('@','_q_');
       if(!email) return toast.error("Geçersiz eposta adresi")
