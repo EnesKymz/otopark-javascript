@@ -121,6 +121,8 @@ export default function VehicleEntryExit() {
       const totalprice = collection(dbfs,"admins",encodeMail,"years",`year_${year}`,"daily_payments",`${date}`,"transactions")
       const totalSnapshot = await getDocs(totalprice)
       for(const doc of totalSnapshot.docs){
+        const cikis = doc.data().cikis;
+        if(!cikis) continue;
         const details = doc.data().details;
         const vehicleTime = new Date(details.joinDate)
         const currentTime = new Date();
@@ -275,7 +277,6 @@ export default function VehicleEntryExit() {
       cikis:false,
      });
      setTotalDayVehicle(totalDayVehicle+1)
-      setTotalDayPrice(prev => prev + vehicleEntryPrice)
      setVehicleIndex(maxIdDB)
      addVehicle({
       id:maxIdDB+1,
@@ -329,6 +330,7 @@ export default function VehicleEntryExit() {
         },
         ...prev.slice(0, 3),
       ]);
+      setTotalDayPrice(prev => prev + selectedVehicle.price)
       toast.success(`${selectedVehicle.plate} plakalı aracın çıkışı yapıldı`)
     }else{
       const cikisTarih = new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Istanbul"})).toISOString().slice(0,16)
