@@ -313,10 +313,11 @@ export default function VehicleEntryExit() {
         createdTime.getDate().toString().padStart(2, '0')
       ];
       const vehicleRef = doc(dbfs,`admins/${encodedEmail}/years/year_${year}/daily_payments/${year}-${month}-${day}/transactions/autoID${isCikis.id}`)
+      const isCikisNum = Number(isCikis.price)
       updateDoc(vehicleRef,{
         details:{
         ...selectedVehicle,
-        price:selectedVehicle.price,
+        price:isCikisNum,
         },
         cikis:true,
       })
@@ -330,7 +331,7 @@ export default function VehicleEntryExit() {
         },
         ...prev.slice(0, 3),
       ]);
-      setTotalDayPrice(prev => prev + selectedVehicle.price)
+      setTotalDayPrice(prev => prev +isCikisNum)
       toast.success(`${selectedVehicle.plate} plakalı aracın çıkışı yapıldı`)
     }else{
       const cikisTarih = new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Istanbul"})).toISOString().slice(0,16)
