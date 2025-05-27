@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import { toast, ToastBar, Toaster } from "react-hot-toast"
 import { useSession } from "next-auth/react"
 import {dbfs} from "@/app/firebase/firebaseConfig";
-import { collection, collectionGroup, deleteDoc, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from "firebase/firestore"
+import { collection, collectionGroup, deleteDoc, doc, getDoc, getDocs, increment, query, setDoc, updateDoc, where } from "firebase/firestore"
 import {   
   GridRowModes,
   DataGrid,
@@ -307,12 +307,16 @@ export default function VehicleEntryExit() {
     if(isCikis !==null){
       const selectedVehicle = vehiclesData.find(item =>item.id ===id)
       const createdTime = new Date(selectedVehicle.createdAt)
+      const nowDate = getTurkeyDate()
+      console.error(nowDate)
+      const [yearNow,monthNow,dayNow] = nowDate.split("-")
       const [year, month, day] = [
         createdTime.getFullYear(),
         (createdTime.getMonth() + 1).toString().padStart(2, '0'),
         createdTime.getDate().toString().padStart(2, '0')
       ];
       const vehicleRef = doc(dbfs,`admins/${encodedEmail}/years/year_${year}/daily_payments/${year}-${month}-${day}/transactions/autoID${isCikis.id}`)
+      const dateRef = doc(dbfs,"admins",encodedEmail,"years",`year_${yearNow}`,"daily_payments",nowDate)
       const isCikisNum = Number(isCikis.price)
       updateDoc(vehicleRef,{
         details:{
@@ -332,6 +336,15 @@ export default function VehicleEntryExit() {
         ...prev.slice(0, 3),
       ]); 
       setTotalDayPrice(prev => prev +isCikisNum)
+      try{
+      await updateDoc(dateRef, {
+          total_price: increment(isCikisNum)
+        });
+     }catch{
+      await setDoc(dateRef, {
+      total_price: isCikisNum
+    });
+     }
       toast.success(`${selectedVehicle.plate} plakalı aracın çıkışı yapıldı`)
     }else{
       const cikisTarih = new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Istanbul"})).toISOString().slice(0,16)
