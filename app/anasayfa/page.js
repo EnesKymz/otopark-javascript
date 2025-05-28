@@ -12,7 +12,7 @@ export default function Dashboard() {
     const vercelEnv = process.env.NEXT_PUBLIC_VERCEL_ENV;
     const [maintenance, setMaintenance] = useState  (false);
     const [data, setData] = useState([]);
-    const [vehicleCount, setVehicleCount] = useState(0);
+    const [vehicleCount, setVehicleCount] = useState([]);
     useEffect(()=>{
         if(vercelEnv === "production"){
             setMaintenance(true);
