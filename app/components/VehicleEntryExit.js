@@ -308,7 +308,6 @@ export default function VehicleEntryExit() {
       const selectedVehicle = vehiclesData.find(item =>item.id ===id)
       const createdTime = new Date(selectedVehicle.createdAt)
       const nowDate = getTurkeyDate()
-      console.error(nowDate)
       const [yearNow,monthNow,dayNow] = nowDate.split("-")
       const [year, month, day] = [
         createdTime.getFullYear(),
