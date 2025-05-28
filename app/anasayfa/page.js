@@ -1,24 +1,14 @@
 "use client"
 import { useEffect, useState } from "react";
-import MaintenancePage from "../components/maintenance";
 import { collection, count, doc, getCountFromServer, getDoc, getDocs, limit, orderBy, query, where } from "firebase/firestore";
 import { useSession } from "next-auth/react";
 import { dbfs } from "../firebase/firebaseConfig";
 import { BarChart } from "@mui/x-charts";
-import { set } from "firebase/database";
 
 export default function Dashboard() {
     const {data:session, status} = useSession();    
-    const vercelEnv = process.env.NEXT_PUBLIC_VERCEL_ENV;
-    const [maintenance, setMaintenance] = useState  (false);
     const [data, setData] = useState([]);
     const [vehicleCount, setVehicleCount] = useState([]);
-    useEffect(()=>{
-        if(vercelEnv === "production"){
-            setMaintenance(true);
-        }
-    },[vercelEnv])
-    
     useEffect(()=>{
         if(status === "loading") return;
         if(!session) return;
@@ -59,35 +49,32 @@ export default function Dashboard() {
         return `${value}`;
     }
     return(
-        <div>
-        {maintenance ? <MaintenancePage/>:(
-    <div className="flex flex-col lg:flex-row gap-6 bg-indigo-50 p-6 rounded-2xl shadow-xl">
-  {/* Kazanç Grafiği */}
-  <div className="flex-1 bg-white rounded-2xl p-6 shadow-md border border-indigo-100">
-    <h2 className="text-xl font-semibold text-indigo-500 mb-4">Son 5 Günün Kazanç Grafiği 📈</h2>
-    <BarChart
-      dataset={data}
-      yAxis={[{ scaleType: 'band', dataKey: 'month' }]}
-      series={[{ dataKey: 'data', label: 'Kazanç', valueFormatter, color: '#6366F1' }]} // indigo-500
-      layout="horizontal"
-      height={400}
-    />
-  </div>
+    <div>   
+        <div className="flex flex-col lg:flex-row gap-6 bg-indigo-50 p-6 rounded-2xl shadow-xl">
+    {/* Kazanç Grafiği */}
+    <div className="flex-1 bg-white rounded-2xl p-6 shadow-md border border-indigo-100">
+        <h2 className="text-xl font-semibold text-indigo-500 mb-4">Son 5 Günün Kazanç Grafiği 📈</h2>
+        <BarChart
+        dataset={data}
+        yAxis={[{ scaleType: 'band', dataKey: 'month' }]}
+        series={[{ dataKey: 'data', label: 'Kazanç', valueFormatter, color: '#6366F1' }]} // indigo-500
+        layout="horizontal"
+        height={400}
+        />
+    </div>
 
-  {/* Araç Giriş Grafiği */}
-  <div className="flex-1 bg-white rounded-2xl p-6 shadow-md border border-indigo-100">
-    <h2 className="text-xl font-semibold text-indigo-500 mb-4">Son 5 Günün Araç Giriş Grafiği 🚗</h2>
-    <BarChart
-      dataset={vehicleCount}
-      yAxis={[{ scaleType: 'band', dataKey: 'month' }]}
-      series={[{ dataKey: 'data', label: 'Araç Girişi', valueFormatter, color: '#6366F1' }]} // indigo-500
-      layout="horizontal"
-      height={400}
-    />
-  </div>
-</div>
-
-    )}
+    {/* Araç Giriş Grafiği */}
+    <div className="flex-1 bg-white rounded-2xl p-6 shadow-md border border-indigo-100">
+        <h2 className="text-xl font-semibold text-indigo-500 mb-4">Son 5 Günün Araç Giriş Grafiği 🚗</h2>
+        <BarChart
+        dataset={vehicleCount}
+        yAxis={[{ scaleType: 'band', dataKey: 'month' }]}
+        series={[{ dataKey: 'data', label: 'Araç Girişi', valueFormatter, color: '#6366F1' }]} // indigo-500
+        layout="horizontal"
+        height={400}
+        />
+    </div>
+        </div>
     </div>
     )
 }
