@@ -65,7 +65,7 @@ export default function Dashboard() {
     </div>
 
     {/* Araç Giriş Grafiği */}
-    <div className="flex-1 bg-white rounded-2xl p-6 shadow-md border border-indigo-100">
+    <div className="flex-1 select-none bg-white rounded-2xl p-6 shadow-md border border-indigo-100">
         <h2 className="text-xl font-semibold text-indigo-500 mb-4">Son 5 Günün Araç Giriş Grafiği 🚗</h2>
         <BarChart
         dataset={vehicleCount}
