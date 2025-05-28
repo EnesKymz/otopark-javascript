@@ -4,11 +4,11 @@ import { collection, count, doc, getCountFromServer, getDoc, getDocs, limit, ord
 import { useSession } from "next-auth/react";
 import { dbfs } from "../firebase/firebaseConfig";
 import { BarChart } from "@mui/x-charts";
+import { useDataContext } from "../context/dataContext";
 
 export default function Dashboard() {
     const {data:session, status} = useSession();    
-    const [data, setData] = useState([]);
-    const [vehicleCount, setVehicleCount] = useState([]);
+    const {data, setData,vehicleCount, setVehicleCount} = useDataContext();
     useEffect(()=>{
         if(status === "loading") return;
         if(!session) return;
@@ -16,6 +16,7 @@ export default function Dashboard() {
         if(!userEmail) return;
         const email = userEmail.replace(/\./g, '_dot_').replace('@','_q_');
         const checkLast5PRiceData = async() =>{
+        if(data?.length > 0 && vehicleCount?.length > 0) return;
             const totalPriceRef = query(
             collection(dbfs,"admins",email,"years","year_2025","daily_payments"),
             orderBy("__name__", "desc"),

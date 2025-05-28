@@ -12,6 +12,8 @@ export const DataProvider = ({ children }) => {
   const [totalDayVehicle, setTotalDayVehicle] = useState(0);
   const [recentActivity, setRecentActivity] = useState([])
   const [totalDayPrice, setTotalDayPrice] = useState(0);
+  const [data, setData] = useState([]);
+    const [vehicleCount, setVehicleCount] = useState([]);
   const addVehicle = useCallback((newVehicle) => {
     if (!newVehicle?.plate) {
       console.error('Plaka bilgisi eksik');
@@ -91,7 +93,9 @@ export const DataProvider = ({ children }) => {
     savedEmail,
     totalDayPrice, 
     setTotalDayPrice,
-    setSavedEmail,recentActivity, setRecentActivity
+    setSavedEmail,recentActivity, setRecentActivity,
+    data, setData,
+    vehicleCount, setVehicleCount,
     // setVehiclesData ve setTotalDayVehicle'i dışarı açmak istemiyorsanız kaldırabilirsiniz
   };
 
