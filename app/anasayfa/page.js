@@ -19,7 +19,7 @@ export default function Dashboard() {
             const totalPriceRef = query(
             collection(dbfs,"admins",email,"years","year_2025","daily_payments"),
             orderBy("__name__", "desc"),
-            limit(6)
+            limit(5)
             );
         const dataPrice = await getDocs(totalPriceRef);
         const tempData = [];
