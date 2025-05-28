@@ -53,7 +53,7 @@ export default function Dashboard() {
     <div>   
         <div className="flex flex-col lg:flex-row gap-6 bg-indigo-50 p-6 rounded-2xl shadow-xl">
     {/* Kazanç Grafiği */}
-    <div className="flex-1 bg-white rounded-2xl p-6 shadow-md border border-indigo-100">
+    <div className="flex-1 select-none bg-white rounded-2xl p-6 shadow-md border border-indigo-100">
         <h2 className="text-xl font-semibold text-indigo-500 mb-4">Son 5 Günün Kazanç Grafiği 📈</h2>
         <BarChart
         dataset={data}
