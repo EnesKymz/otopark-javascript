@@ -73,6 +73,7 @@ export default function Dashboard() {
         series={[{ dataKey: 'data', label: 'Kazanç', valueFormatter, color: '#6366F1' }]}
         layout="horizontal"
         height={400}
+        barLabel={"value"}
       />
     </div>
 
@@ -85,6 +86,7 @@ export default function Dashboard() {
         series={[{ dataKey: 'data', label: 'Araç Girişi', valueFormatter, color: '#6366F1' }]}
         layout="horizontal"
         height={400}
+        barLabel={"value"}
       />
     </div>
   </div>
