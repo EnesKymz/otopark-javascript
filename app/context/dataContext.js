@@ -1,5 +1,5 @@
 "use client"
-import React, { createContext, useState, useContext, useCallback, useEffect } from 'react';
+import React, { createContext, useState, useContext, useCallback } from 'react';
 import toast from 'react-hot-toast';
 
 const DataContext = createContext();
@@ -98,7 +98,6 @@ export const DataProvider = ({ children }) => {
     data, setData,
     vehicleCount, setVehicleCount,
     totalVehicleData,settotalVehicleData
-    // setVehiclesData ve setTotalDayVehicle'i dışarı açmak istemiyorsanız kaldırabilirsiniz
   };
 
   return (

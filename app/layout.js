@@ -58,7 +58,10 @@ export default function RootLayout({ children }) {
           (<title>Şifremi Unuttum</title>)
           :pathname==="/sifreyenileme" ? 
           (<title>Şifre Yenile</title>)
+          :pathname==="/arac-hareketleri" ? 
+          (<title>Araç Hareketleri</title>)
           :(<title>Sayfa</title>)
+          
           }
           
           { !["/", "/kayitol", "/sifremi-unuttum","/sifreyenileme"].includes(pathname)?

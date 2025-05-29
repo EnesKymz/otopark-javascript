@@ -16,11 +16,12 @@ export default function VehicleMovements() {
     useEffect(()=>{
         if(status === "loading") return;
         if(!session) return;
-        if(totalVehicleData.length>0) return;
         const userEmail = session?.user?.email;
         if(!userEmail) return;
         const email = userEmail.replace(/\./g, '_dot_').replace('@','_q_');
         const fetchVehicleMovements = async() =>{
+            const totalVehicle = totalVehicleData?.length || 0;
+            if(totalVehicle > 0) return;
             const date = getTurkeyDate();
             const vehicleRef = query(
                 collection(dbfs,"admins",email,"years","year_2025","daily_payments",date,"transactions"),
@@ -38,7 +39,7 @@ export default function VehicleMovements() {
             settotalVehicleData(tempData);
         }
         fetchVehicleMovements();
-    },[])
+    },[totalVehicleData])
     const columns = [
     { field: "id", headerName: 'ID', width: 90, },
     {
