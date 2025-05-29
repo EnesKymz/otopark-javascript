@@ -20,6 +20,7 @@ import CancelIcon from '@mui/icons-material/Close';
 import AddTaskIcon from '@mui/icons-material/AddTask';
 import { MoonLoader } from "react-spinners"
 import Loader from "./animations/loader"
+import { getTurkeyDate } from "../utils/getTurkeyDate";
 export default function VehicleEntryExit() {
   const {data: session,status} = useSession();
   const [licensePlate, setLicensePlate] = useState("")
@@ -37,22 +38,17 @@ export default function VehicleEntryExit() {
     recentActivity,
     setRecentActivity,
     totalDayPrice, 
-    setTotalDayPrice
+    setTotalDayPrice,
+    settotalVehicleData
   } = useDataContext()
   const [rowModesModel, setRowModesModel] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [isCikis,setIsCikis] = useState(null)
   const [encodedEmail,setEncodedEmail] = useState("")
+  const [filterRecentActivity,setFilterRecentActivity] = useState(recentActivity)
     const scrollToBottom = () => {
     window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
   };
-  function getTurkeyDate() {
-    const now = new Date();
-    const offset = 3 * 60 * 60 * 1000;
-    const turkeyTime = new Date(now.getTime() + offset);
-    
-    return turkeyTime.toISOString().split('T')[0]; // "2025-04-01"
-  }
   useEffect(()=>{
   async function getData () {
   try{
@@ -117,10 +113,20 @@ export default function VehicleEntryExit() {
         },
         ...prev.slice(0, 3),
       ]);
+        setFilterRecentActivity((prev) => [
+        {
+          plate: doc.data().details.plate,
+          action:"giriş",
+          time: new Date(doc.data().details.joinDate).toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" }),
+        },
+        ...prev.slice(0, 3),
+      ]);
       }
-      const totalprice = collection(dbfs,"admins",encodeMail,"years",`year_${year}`,"daily_payments",`${date}`,"transactions")
-      const totalSnapshot = await getDocs(totalprice)
-      for(const doc of totalSnapshot.docs){
+      const totalprice = doc(dbfs,"admins",encodeMail,"years",`year_${year}`,"daily_payments",`${date}`)
+      const totalSnapshot = await getDoc(totalprice)
+      const total_price = totalSnapshot.data()?.total_price || 0;
+      setTotalDayPrice(total_price)
+      /*for(const doc of totalSnapshot.docs){
         const cikis = doc.data().cikis;
         if(!cikis) continue;
         const details = doc.data().details;
@@ -129,7 +135,8 @@ export default function VehicleEntryExit() {
         const timeDiff = (currentTime.getTime() - vehicleTime.getTime());
         const timeDiffInDays = Math.round(timeDiff / (1000 * 3600 * 24))+1;
         setTotalDayPrice(prev => prev + (doc.data().details.price * timeDiffInDays))
-      }
+      }*/
+
     }catch(error){
       console.error(error.message)
     }finally{
@@ -287,6 +294,15 @@ export default function VehicleEntryExit() {
      setDoc(summaryRef,{
       index:maxIdDB+1,
      },{merge:true})
+     settotalVehicleData((prev) => ({
+       ...prev,
+         id: maxIdDB + 1,
+         plate: licensePlate,
+         joinDate: utcFormat,
+         price: vehicleEntryPrice,
+         createdAt: utcFormat,
+       
+     }));
     toast.success(`${licensePlate} plakalı araç girişi yapıldı.`)
     setRecentActivity((prev) => [
       {
@@ -478,12 +494,21 @@ export default function VehicleEntryExit() {
     },
   ];
   const [statusPanel,setStatusPanel] = useState("giris")
+  const handleStatusPanelChange = (panel) => {
+    if(panel ==="giris"){
+      setFilterRecentActivity(recentActivity.filter(item => item.action === "giriş"));
+    }
+    if(panel ==="cikis"){
+      setFilterRecentActivity(recentActivity.filter(item => item.action === "cikis"));
+    }
+    setStatusPanel(panel);
+  }
   const RecentActivity =()=>{
     return(
       <div className="mt-6">
         <div className="space-y-2 max-h-60 overflow-y-auto"></div>
           <h3 className="font-medium text-gray-700 mb-2 hover:text-indigo-500 select-none">Son İşlemler</h3>
-            {recentActivity.map((activity, index) => (
+            {filterRecentActivity.map((activity, index) => (
               <div 
                 key={index}
                 onClick={()=>recentActivityExit(activity.action,activity.plate)}
@@ -510,8 +535,8 @@ export default function VehicleEntryExit() {
     {/* Sol Panel - Araç Girişi */}
     <div className="w-full md:w-1/3 bg-white rounded-xl shadow-md p-6">
     <div className="rounded bg-gray-300 grid grid-cols-2 p-1 mb-4">
-    <button onClick={()=>setStatusPanel("giris")} className={`${statusPanel ==="giris" ? "bg-gray-100 text-black" : "text-black"} rounded cursor-pointer`}>Giriş</button>
-    <button onClick={()=>setStatusPanel("cikis")} className={`${statusPanel ==="cikis" ? "bg-gray-100 text-black" : "text-black"} rounded cursor-pointer`}>Çıkış</button>
+    <button onClick={()=>handleStatusPanelChange("giris")} className={`${statusPanel ==="giris" ? "bg-gray-100 text-black" : "text-black"} rounded cursor-pointer`}>Giriş</button>
+    <button onClick={()=>handleStatusPanelChange("cikis")} className={`${statusPanel ==="cikis" ? "bg-gray-100 text-black" : "text-black"} rounded cursor-pointer`}>Çıkış</button>
     </div>
 
     {statusPanel ==="giris" ? (

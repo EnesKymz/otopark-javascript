@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { dbfs } from "../firebase/firebaseConfig";
 import { BarChart } from "@mui/x-charts";
 import { useDataContext } from "../context/dataContext";
+import Link from "next/link";
 
 export default function Dashboard() {
     const {data:session, status} = useSession();    
@@ -50,32 +51,44 @@ export default function Dashboard() {
         return `${value}`;
     }
     return(
-    <div>   
-        <div className="flex flex-col lg:flex-row gap-6 bg-indigo-50 p-6 rounded-2xl shadow-xl">
+    <div className="bg-indigo-50 min-h-screen py-6">
+  {/* Buton Alanı */}
+  <div className="flex justify-center text-center w-full mb-6">
+    <Link
+     href={"/arac-hareketleri"}
+      className="w-full max-w-2xl mx-4 py-3 bg-indigo-500 hover:bg-indigo-600 text-white font-semibold text-lg rounded-xl shadow-sm transition duration-300"
+    >
+      Bugünkü Araç Hareketlerini Gör
+    </Link>
+  </div>
+
+  {/* Grafikler */}
+  <div className="flex flex-col lg:flex-row gap-6 px-6">
     {/* Kazanç Grafiği */}
     <div className="flex-1 select-none bg-white rounded-2xl p-6 shadow-md border border-indigo-100">
-        <h2 className="text-xl font-semibold text-indigo-500 mb-4">Son 5 Günün Kazanç Grafiği 📈</h2>
-        <BarChart
+      <h2 className="text-xl font-semibold text-indigo-500 mb-4">Son 5 Günün Kazanç Grafiği 📈</h2>
+      <BarChart
         dataset={data}
         yAxis={[{ scaleType: 'band', dataKey: 'month' }]}
-        series={[{ dataKey: 'data', label: 'Kazanç', valueFormatter, color: '#6366F1' }]} // indigo-500
+        series={[{ dataKey: 'data', label: 'Kazanç', valueFormatter, color: '#6366F1' }]}
         layout="horizontal"
         height={400}
-        />
+      />
     </div>
 
     {/* Araç Giriş Grafiği */}
     <div className="flex-1 select-none bg-white rounded-2xl p-6 shadow-md border border-indigo-100">
-        <h2 className="text-xl font-semibold text-indigo-500 mb-4">Son 5 Günün Araç Giriş Grafiği 🚗</h2>
-        <BarChart
+      <h2 className="text-xl font-semibold text-indigo-500 mb-4">Son 5 Günün Araç Giriş Grafiği 🚗</h2>
+      <BarChart
         dataset={vehicleCount}
         yAxis={[{ scaleType: 'band', dataKey: 'month' }]}
-        series={[{ dataKey: 'data', label: 'Araç Girişi', valueFormatter, color: '#6366F1' }]} // indigo-500
+        series={[{ dataKey: 'data', label: 'Araç Girişi', valueFormatter, color: '#6366F1' }]}
         layout="horizontal"
         height={400}
-        />
+      />
     </div>
-        </div>
-    </div>
+  </div>
+</div>
+
     )
 }
