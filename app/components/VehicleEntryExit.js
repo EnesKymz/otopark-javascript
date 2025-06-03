@@ -616,13 +616,10 @@ export default function VehicleEntryExit() {
     </div>
     )
   }
-  const [isCikisPanelOpen, setIsCikisPanelOpen] = useState();
-  const toggleCikisPanel = useCallback( async(value) => {
-    if(value ==="Şuan"||value==="")
+  const [isCikisPanelOpen, setIsCikisPanelOpen] = useState("giriş");
+  const toggleCikisPanel = useCallback(async(value) => {
+    if(value ==="Çıkanlar")
     {
-    setIsLoading(false);
-    setIsCikisPanelOpen("giriş");
-    }else{
       setIsLoading(true)
       if (status === 'loading') return; // Oturum yükleniyor
       if (status === 'unauthenticated') {
@@ -643,33 +640,14 @@ export default function VehicleEntryExit() {
       const todayDate = new Date(date)
       const threeDaysAgo = todayDate.setDate(todayDate.getDate() - 3);
       const [year,month,day] = date.split("-")
-      for(let i = todayDate; i >= threeDaysAgo; i.setDate(i.getDate() + 1))
-      {
-        const newDate = new Date(i);
-        const dateString = newDate.toISOString().slice(0,10);
-        const q = query(
-        collection(dbfs,"admins",encodeMail,"years",`year_${year}`,"daily_payments",dateString,"transactions"),
-        where("cikis","==",true),
-        where("userEmail","==",encodeMail),
-      );
-      const querySnapshot = await getDocs(q)
-      if(!querySnapshot.empty)
-      {
-        if(exitVehiclesData&&querySnapshot.size===exitVehiclesData?.length) return setIsLoading(false);
-        for(const doc of querySnapshot.docs){
-          const StringID = doc.id.replace("autoID","");
-          const numberID = Number(StringID)
-          addExitVehicle({id:numberID,...doc.data().details})
-        }
-      }else{
-        setIsLoading(false)
-        setIsCikisPanelOpen("çıkış")
-      }}
+      
     setIsLoading(false)
     setIsCikisPanelOpen("çıkış");
-    console.error(isCikisPanelOpen)
+    }else{
+    setIsLoading(false);
+    setIsCikisPanelOpen("giriş");
     }
-  },[isCikisPanelOpen]);
+  },[]);
   const undoVehicleExit = (id) => async () => {
     const vehicle = exitVehiclesData.find(item => item.id === id);
     if (!vehicle) {
@@ -825,7 +803,7 @@ export default function VehicleEntryExit() {
         { !isLoading ? (
           <div className="flex justify-between">
           
-          {isCikisPanelOpen==="giriş" ?
+          {isCikisPanelOpen==="giriş"||isCikisPanelOpen==="Şuan" ?
           (<Paper className="flex select-none" sx={{height:'30rem', width: '100%' }}>
             <DataGrid
               rows={vehiclesData}
