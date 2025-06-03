@@ -15,6 +15,7 @@ export const DataProvider = ({ children }) => {
   const [data, setData] = useState([]);
   const [vehicleCount, setVehicleCount] = useState([]);
   const [totalVehicleData,settotalVehicleData] = useState({});
+  const [exitVehiclesData,setexitVehiclesData] = useState()
   const addVehicle = useCallback((newVehicle) => {
     if (!newVehicle?.plate) {
       console.error('Plaka bilgisi eksik');
@@ -56,7 +57,44 @@ export const DataProvider = ({ children }) => {
 
     return true;
   }, []);
+  const addExitVehicle = useCallback((newVehicle) => {
+    console.error(newVehicle)
+      if (!newVehicle?.plate) {
+        console.error('Plaka bilgisi eksik');
+        return false;
+      }
+      const ID = Number(newVehicle.id)
+      const date = newVehicle.joinDate;
+      const formattedVehicle = {
+        ...newVehicle,
+        id: ID,
+        plate: newVehicle.plate,
+        joinDate: date,
+        price: newVehicle.price||0,
+        createdAt: newVehicle.createdAt
+      };
+      
+      setexitVehiclesData(prev => {
+        // Plaka kontrolü
+        const plateExists = prev?.some(v => v.plate === formattedVehicle.plate);
+        if (plateExists) {
+          if(vehiclesData&&vehiclesData?.length === 0){
+            return;
+          }
+          toast.error(`Bu plaka zaten kayıtlı: ${formattedVehicle.plate}`);
+          return prev;
+        }else{
+          if(prev){
+            return [...prev,formattedVehicle];
+          }else{
+            return [formattedVehicle]
+          }
+        }
+      
+      });
 
+      return true;
+    }, []);
 
   // Araç güncelleme
   const updateVehicle = useCallback((id, updatedData) => {
@@ -94,10 +132,16 @@ export const DataProvider = ({ children }) => {
     savedEmail,
     totalDayPrice, 
     setTotalDayPrice,
-    setSavedEmail,recentActivity, setRecentActivity,
+    setSavedEmail,
+    recentActivity, 
+    setRecentActivity,
     data, setData,
     vehicleCount, setVehicleCount,
-    totalVehicleData,settotalVehicleData
+    totalVehicleData,
+    settotalVehicleData,
+    addExitVehicle,
+    exitVehiclesData,
+    setexitVehiclesData
   };
 
   return (

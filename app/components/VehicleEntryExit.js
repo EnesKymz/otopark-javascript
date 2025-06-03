@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { toast, ToastBar, Toaster } from "react-hot-toast"
 import { useSession } from "next-auth/react"
 import {dbfs} from "@/app/firebase/firebaseConfig";
@@ -12,7 +12,7 @@ import {
   GridRowEditStopReasons,
   } from '@mui/x-data-grid';
 import { useDataContext } from "../context/dataContext";
-import { Paper } from "@mui/material";
+import { Autocomplete, Paper, TextField } from "@mui/material";
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
 import SaveIcon from '@mui/icons-material/Save';
@@ -21,6 +21,7 @@ import AddTaskIcon from '@mui/icons-material/AddTask';
 import { MoonLoader } from "react-spinners"
 import Loader from "./animations/loader"
 import { getTurkeyDate } from "../utils/getTurkeyDate";
+import ReplyIcon from '@mui/icons-material/Reply';
 export default function VehicleEntryExit() {
   const {data: session,status} = useSession();
   const [licensePlate, setLicensePlate] = useState("")
@@ -39,7 +40,10 @@ export default function VehicleEntryExit() {
     setRecentActivity,
     totalDayPrice, 
     setTotalDayPrice,
-    settotalVehicleData
+    settotalVehicleData,
+    exitVehiclesData,
+    addExitVehicle,
+    setexitVehiclesData
   } = useDataContext()
   const [rowModesModel, setRowModesModel] = useState({});
   const [isLoading, setIsLoading] = useState(true);
@@ -493,6 +497,93 @@ export default function VehicleEntryExit() {
       },
     },
   ];
+  const exitColumns = [
+    { field: "id", headerName: 'ID', width: 90, },
+    {
+      field: 'plate',
+      headerName: 'Plaka',
+      type: 'string',
+      width: 180,
+      editable:true,
+    },
+    {
+      field: 'joinDate',
+      headerName: 'Tarih',
+      type: 'dateTime',
+      width: 180,
+      editable:true,
+      valueGetter: (value,row) => {
+        const date = row.joinDate;
+        if (!date) return null;
+        const turkeyTime = new Date(date); // +3 saat
+    
+        return turkeyTime;
+      },
+    },
+    {
+      field: 'price',
+      headerName: 'Ücret',
+      type: 'number',
+      valueFormatter: (value) => {
+      if (!value || typeof value !== 'number') {
+        return value;
+      }
+      return `${value.toLocaleString()} ₺`;
+      },
+      width: 90,
+    },
+    {
+      field: 'actions',
+      type: 'actions',
+      headerName: 'Aksiyonlar',
+      width: 100,
+      cellClassName: 'actions',
+      getActions: ({ id }) => {
+        const isInEditMode = rowModesModel[id]?.mode === GridRowModes.Edit;
+        if (isInEditMode) {
+          return [
+            <GridActionsCellItem key={id}
+            icon={<SaveIcon/>}
+              label="Save"
+              sx={{
+                color: 'primary.main',
+              }}
+              onClick={handleSaveClick(id)}
+            />,
+            <GridActionsCellItem key={id}
+            icon={<CancelIcon/>}
+              label="Cancel"
+              className="textPrimary"
+              onClick={handleCancelClick(id)}
+              color="inherit"
+            />,
+          ];
+        }
+
+        return [
+          <GridActionsCellItem key={id}
+            icon={<EditIcon/>}
+            label="Edit"
+            className="textPrimary"
+            onClick={handleEditClick(id)}
+            color="inherit"
+          />,
+          <GridActionsCellItem key={id}
+          icon={<DeleteIcon/>}
+            label="Delete"
+            onClick={handleDeleteClick(id)}
+            color="inherit"
+          />,
+          <GridActionsCellItem key={id}
+          icon={<ReplyIcon/>}
+          label="Delete"
+          onClick={undoVehicleExit(id)}
+          color="inherit"
+         /> 
+        ];
+      },
+    },
+  ];
   const [statusPanel,setStatusPanel] = useState("giris")
   const handleStatusPanelChange = (panel) => {
     if(panel ==="giris"){
@@ -525,12 +616,92 @@ export default function VehicleEntryExit() {
     </div>
     )
   }
+  const [isCikisPanelOpen, setIsCikisPanelOpen] = useState();
+  const toggleCikisPanel = useCallback( async(value) => {
+    if(value ==="Şuan"||value==="")
+    {
+    setIsLoading(false);
+    setIsCikisPanelOpen("giriş");
+    }else{
+      setIsLoading(true)
+      if (status === 'loading') return; // Oturum yükleniyor
+      if (status === 'unauthenticated') {
+        throw new Error('Kullanıcı giriş yapmamış');
+      }
+      if (!session || typeof session !== 'object' || !session.user || !session.user.email) {
+        throw new Error('Eksik kullanıcı bilgisi');
+      }    
+      
+      const email = session.user.email
+      if(!email){
+        return;
+      }
+      const encodeMail = email.replace(/\./g, '_dot_').replace('@','_q_');
+      setSavedEmail(encodeMail)
+      setEncodedEmail(encodeMail);
+      const date = getTurkeyDate()
+      const todayDate = new Date(date)
+      const threeDaysAgo = todayDate.setDate(todayDate.getDate() - 3);
+      const [year,month,day] = date.split("-")
+      for(let i = todayDate; i >= threeDaysAgo; i.setDate(i.getDate() + 1))
+      {
+        const newDate = new Date(i);
+        const dateString = newDate.toISOString().slice(0,10);
+        const q = query(
+        collection(dbfs,"admins",encodeMail,"years",`year_${year}`,"daily_payments",dateString,"transactions"),
+        where("cikis","==",true),
+        where("userEmail","==",encodeMail),
+      );
+      const querySnapshot = await getDocs(q)
+      if(!querySnapshot.empty)
+      {
+        if(exitVehiclesData&&querySnapshot.size===exitVehiclesData?.length) return setIsLoading(false);
+        for(const doc of querySnapshot.docs){
+          const StringID = doc.id.replace("autoID","");
+          const numberID = Number(StringID)
+          addExitVehicle({id:numberID,...doc.data().details})
+        }
+      }else{
+        setIsLoading(false)
+        setIsCikisPanelOpen("çıkış")
+      }}
+    setIsLoading(false)
+    setIsCikisPanelOpen("çıkış");
+    console.error(isCikisPanelOpen)
+    }
+  },[isCikisPanelOpen]);
+  const undoVehicleExit = (id) => async () => {
+    const vehicle = exitVehiclesData.find(item => item.id === id);
+    if (!vehicle) {
+      toast.error("Araç bulunamadı.");
+      return;
+    }
+    const vehicleRef = doc(dbfs, `admins/${encodedEmail}/years/year_${vehicle.createdAt.slice(0, 4)}/daily_payments/${vehicle.createdAt.slice(0, 10)}/transactions/autoID${id}`);
+    const vehicleSnapshot = await getDoc(vehicleRef);
+    if (!vehicleSnapshot.exists()) {
+      toast.error("Araç çıkışı bulunamadı.");
+      return;
+    }
+    updateDoc(vehicleRef, {
+      cikis: false,
+    });
+  try{
+    setTotalDayPrice(prev => {
+      const vehicleToRemove = vehiclesData?.find(item => item.id === id);
+      if (vehicleToRemove) {
+        return prev - (vehicleToRemove.price);
+      }
+      return prev;
+    })
+    setexitVehiclesData(prev => prev?.filter(item => item.id !==id));
+    addVehicle(vehicle)
+    }catch(error){
+      console.error('Araç silinirken hata oluştu:', error);
+    }
+  };
   return (
   <div className="flex flex-col w-full min-h-screen bg-gray-50 select-none">
-
   {/* Ana İçerik */}
-  
-
   <div className="flex flex-col md:flex-row gap-6 p-6 max-w-7xl mx-auto w-full">
     {/* Sol Panel - Araç Girişi */}
     <div className="w-full md:w-1/3 bg-white rounded-xl shadow-md p-6">
@@ -641,13 +812,21 @@ export default function VehicleEntryExit() {
             <span className="bg-indigo-500 text-white px-3 py-1 rounded-full text-sm">
               Bugün: {totalDayVehicle} araç
             </span>
+            <Autocomplete
+            options={["Şuan","Çıkanlar"]}
+            renderInput={(params) => <TextField {...params} label="Durum" />}
+            onChange={(value)=>{toggleCikisPanel(value.target.innerText)}}
+            className="w-full"
+            />
           </div>
         </div>
         
         <div className="overflow-x-auto">
         { !isLoading ? (
           <div className="flex justify-between">
-          <Paper className="flex select-none" sx={{height:'30rem', width: '100%' }}>
+          
+          {isCikisPanelOpen==="giriş" ?
+          (<Paper className="flex select-none" sx={{height:'30rem', width: '100%' }}>
             <DataGrid
               rows={vehiclesData}
               columns={columns}
@@ -746,6 +925,108 @@ export default function VehicleEntryExit() {
         </div>)}
           
           </Paper>
+          ):(
+            //Çıkanların tablosu
+            <Paper className="flex select-none" sx={{height:'30rem', width: '100%' }}>
+            <DataGrid
+              rows={exitVehiclesData}
+              columns={exitColumns}
+              editMode="row"
+              rowModesModel={rowModesModel}
+              pageSizeOptions={[10, 50, { value: 100, label: '100' }, { value: -1, label: 'All' }]}
+              onRowModesModelChange={handleRowModesModelChange}
+              onRowEditStop={handleRowEditStop}
+              processRowUpdate={processRowUpdate}
+              sx={{ border: 0 }}
+              onProcessRowUpdateError={(error) => console.error(error)}
+              
+              />
+          {isCikis && (
+          <div className="flex flex-col bg-white bg-opacity-30 w-full h-full border-2 border-indigo-600 rounded-lg p-6 backdrop-blur-sm">
+          <div className="flex justify-between">
+          <h2 className="text-2xl font-bold text-indigo-700 mb-6">Araç Çıkışı</h2>
+          <button onClick={()=>{setLicensePlate("");setIsCikis(null)}} className="text-2xl font-bold text-indigo-700 mb-6 p-2  bg-white shadow rounded shadow-gray-400 cursor-pointer">X</button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Plaka Alanı */}
+            <div className="space-y-2">
+              <label htmlFor="plaka" className="block text-sm font-medium text-gray-700">
+                Plaka No
+              </label>
+              <input
+                id="plaka"
+                type="text"
+                placeholder="34 ABC 123"
+                value={isCikis.plate}
+                className="w-full px-4 py-2 rounded-md border bg-gray-300 border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                disabled={true}
+              />
+            </div>
+        
+            {/* Ücret Alanı */}
+            <div className="space-y-2">
+              <label htmlFor="ucret" className="block text-sm font-medium text-gray-700">
+                Ücret (₺)
+              </label>
+              <input
+                id="ucret"
+                type="number"
+                placeholder="50.00"
+                value={isCikis.price}
+                onChange={(e) => {
+                  const newValue = e.target.value;
+                  setIsCikis(prev => ({...prev, price: newValue}));
+                }}
+                className="w-full px-4 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
+              />
+            </div>
+        
+            {/* Giriş Tarihi */}
+            <div className="space-y-2">
+              <label htmlFor="giris" className="block text-sm font-medium text-gray-700">
+                Giriş Tarihi
+              </label>
+              <input
+                id="giris"
+                type="datetime-local"
+                value={isCikis.joinDate ? new Date(isCikis.joinDate).toISOString().slice(0, 16) : ""}
+                onChange={(e) => {
+                  const newValue = e.target.value;
+                  // Yerel zamanı UTC'ye çevir
+                  const utcDate = new Date(newValue).toISOString();
+                  setIsCikis(prev => ({...prev, joinDate: utcDate }));
+                }}
+                className="w-full px-4 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+              />
+            </div>
+        
+            {/* Çıkış Tarihi */}
+            <div className="space-y-2">
+              <label htmlFor="cikis" className="block text-sm font-medium text-gray-700">
+                Çıkış Tarihi
+              </label>
+              <input
+                id="cikis"
+                type="datetime-local"
+                className="w-full px-4 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                value={isCikis.cikisTarih ? new Date(isCikis.cikisTarih).toISOString().slice(0, 16) : ""}
+              />
+            </div>
+          </div>
+        
+          {/* Kaydet Butonu */}
+          <div className="mt-8 flex justify-end">
+            <button onClick={ExitVehicle(isCikis.id)}
+              type="button"
+              className="px-6 py-2 bg-indigo-400 text-white font-medium rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors"
+            >
+              Çıkış
+            </button>
+          </div>
+        </div>)}
+          
+          </Paper>
+          )}
           
           </div>
           ):(<div className="flex flex-col justify-center items-center m-25 p-3 h-full"><MoonLoader color="#7b14e8" size={40} speedMultiplier={0.4}/></div>)
