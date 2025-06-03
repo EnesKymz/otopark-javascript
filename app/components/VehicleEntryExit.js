@@ -640,7 +640,24 @@ export default function VehicleEntryExit() {
       const todayDate = new Date(date)
       const threeDaysAgo = todayDate.setDate(todayDate.getDate() - 3);
       const [year,month,day] = date.split("-")
-      
+      for(let i = todayDate; i >= threeDaysAgo; i.setDate(i.getDate() + 1))
+      {
+        const newDate = new Date(i);
+        const dateString = newDate.toISOString().slice(0,10);
+        const q = query(
+        collection(dbfs,"admins",encodeMail,"years",`year_${year}`,"daily_payments",dateString,"transactions"),
+        where("cikis","==",true),
+        where("userEmail","==",encodeMail),
+      );
+      const querySnapshot = await getDocs(q)
+      if(!querySnapshot.empty)
+      {
+        for(const doc of querySnapshot.docs){
+          const StringID = doc.id.replace("autoID","");
+          const numberID = Number(StringID)
+          addExitVehicle({id:numberID,...doc.data().details})
+        }
+      }}
     setIsLoading(false)
     setIsCikisPanelOpen("çıkış");
     }else{
@@ -793,7 +810,7 @@ export default function VehicleEntryExit() {
             <Autocomplete
             options={["Şuan","Çıkanlar"]}
             renderInput={(params) => <TextField {...params} label="Durum" />}
-            onChange={(value)=>{toggleCikisPanel(value.target.innerText)}}
+            onInputChange={(value)=>{toggleCikisPanel(value.target.innerText)}}
             className="w-full"
             />
           </div>
@@ -803,7 +820,7 @@ export default function VehicleEntryExit() {
         { !isLoading ? (
           <div className="flex justify-between">
           
-          {isCikisPanelOpen==="giriş"||isCikisPanelOpen==="Şuan" ?
+          {isCikisPanelOpen==="giriş"||isCikisPanelOpen==="" ?
           (<Paper className="flex select-none" sx={{height:'30rem', width: '100%' }}>
             <DataGrid
               rows={vehiclesData}
