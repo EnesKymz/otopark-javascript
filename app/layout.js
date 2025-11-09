@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import AuthProvider from "@/components/sessionProvider";
 import { DataProvider } from "./context/dataContext";
+import { MasrafDataProvider } from "./context/masrafContext";
 import Header from "./components/header";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -41,6 +42,7 @@ export default function RootLayout({ children }) {
       >
         <AuthProvider>
         <DataProvider>
+          <MasrafDataProvider>
           <SubscribeProvider>
           {pathname==="/aracgiris" ? (
             <title>Araç Giriş</title>
@@ -60,6 +62,8 @@ export default function RootLayout({ children }) {
           (<title>Şifre Yenile</title>)
           :pathname==="/arac-hareketleri" ? 
           (<title>Araç Hareketleri</title>)
+          :pathname==="/otoyikama" ?
+          (<title>Oto Yıkama</title>)
           :(<title>Sayfa</title>)
           
           }
@@ -104,6 +108,7 @@ export default function RootLayout({ children }) {
             </Toaster>
             {children}</div>) : <Loader/>}
           </SubscribeProvider>
+          </MasrafDataProvider>
         </DataProvider>
         </AuthProvider>
       </body>

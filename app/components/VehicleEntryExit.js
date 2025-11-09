@@ -640,7 +640,7 @@ export default function VehicleEntryExit() {
       const todayDate = new Date(date)
       const threeDaysAgo = todayDate.setDate(todayDate.getDate() - 3);
       const [year,month,day] = date.split("-")
-      for(let i = todayDate; i >= threeDaysAgo; i.setDate(i.getDate() + 1))
+      for(let i = todayDate; i > threeDaysAgo; i.setDate(i.getDate() + 1))
       {
         const newDate = new Date(i);
         const dateString = newDate.toISOString().slice(0,10);
@@ -657,7 +657,7 @@ export default function VehicleEntryExit() {
           const numberID = Number(StringID)
           addExitVehicle({id:numberID,...doc.data().details})
         }
-      }}
+      }else{return;}}
     setIsLoading(false)
     setIsCikisPanelOpen("çıkış");
     }else{

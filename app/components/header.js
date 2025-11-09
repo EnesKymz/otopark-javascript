@@ -195,6 +195,17 @@ export default function Header({setClickedTab}) {
                 >
                   Araç Girişi
                 </Link>
+               {<Link
+                onClick={handleTabClick("masraf")}
+                  href="/masraf"
+                  className={`pb-1 px-1 font-medium transition-colors ${
+                    tab === "masraf" 
+                      ? "text-indigo-600 border-b-2 border-indigo-600" 
+                      : "text-gray-500 hover:text-indigo-500"
+                  }`}
+                >
+                  Masraf Girişi
+                </Link>}
               </nav>
             </div>
             
