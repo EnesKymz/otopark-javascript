@@ -12,7 +12,7 @@ export default function SifremiUnuttum() {
     const sendResetEmail = () => {
       const email = authIdPass.email
       if(!email||!email.includes("@")){
-        return toast.error("Geçersiz eposta")
+        return toast.error("Geçersiz eposta adresi")
       }
       sendPasswordResetEmail(auth,email)
         .then(() => {
