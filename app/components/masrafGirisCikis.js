@@ -257,9 +257,18 @@ export default function Masrafgiriscikis() {
       const summarySnapshot = await getDoc(summaryRef);
       const indexDB = summarySnapshot.data()
       const maxIdDB = indexDB?.indexMasraf || 0
-      const EntryPrice = masrafGirilen||"Boş"
       const userRef = doc(dbfs,`admins/${encodedEmail}/years/year_${yearMasraf}/monthly_masraf/${yearMasraf}-${monthMasraf}/transactions/autoID${maxIdDB+1}`);
-      
+      const masrafRef = doc(dbfs,`admins/${encodedEmail}/years/year_${yearMasraf}/monthly_masraf/${yearMasraf}-${monthMasraf}`);
+      const masrafPrice = Number(info.price);
+      try{
+      await updateDoc(masrafRef, {
+          total_priceMasraf: increment(masrafPrice)
+        });
+     }catch{
+      await setDoc(masrafRef, {
+      total_priceMasraf: masrafPrice
+    });
+     }
      setDoc(userRef,{
       details:{
         bilgi:info.bilgi,
@@ -300,17 +309,6 @@ export default function Masrafgiriscikis() {
       ...prev.slice(0, 3),
     ]);
     setTotalDayMasrafPrice(prev => prev + Number(info.price))  
-  }
-  const recentActivityExit =(action,plate)=>{
-    if(isCikis) return toast.error("Aynı anda 2 çıkış yapılamaz.");
-    if(action.toString() === "giriş") {
-      const vehicleId = vehiclesData.find(item => item.plate === plate)?.id;
-      if (vehicleId !== undefined) {
-        scrollToBottom()
-      }else{
-        toast.success("Araç çıkışı yapılmış.")
-      }
-    }
   }
   const columns = [
     { field: "id", headerName: 'ID', width: 90, },

@@ -60,10 +60,16 @@ export default function Dashboard() {
     >
       Bugünkü Araç Hareketlerini Gör
     </Link>
+    <Link
+     href={"/raporlar"}
+      className="w-full max-w-2xl mx-4 py-3 bg-indigo-500 hover:bg-indigo-600 text-white font-semibold text-lg rounded-xl shadow-sm transition duration-300"
+    >
+      Raporlar
+    </Link>
   </div>
 
   {/* Grafikler */}
-  <div className="flex flex-col lg:flex-row gap-6 px-6">
+  <div className="flex flex-col  lg:flex-row gap-6 px-6">
     {/* Kazanç Grafiği */}
     <div className="flex-1 select-none bg-white rounded-2xl p-6 shadow-md border border-indigo-100">
       <h2 className="text-xl font-semibold text-indigo-500 mb-4">Son 5 Günün Kazanç Grafiği 📈</h2>
