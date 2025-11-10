@@ -63,8 +63,9 @@ export default function RootLayout({ children }) {
           :pathname==="/arac-hareketleri" ? 
           (<title>Araç Hareketleri</title>)
           :pathname==="/otoyikama" ?
-          (<title>Oto Yıkama</title>)
-          :(<title>Sayfa</title>)
+          (<title>Oto Yıkama</title>) 
+          :pathname==="/masraf" ?
+          (<title>Masraf Girişi</title>) :(<title>Sayfa</title>)
           
           }
           

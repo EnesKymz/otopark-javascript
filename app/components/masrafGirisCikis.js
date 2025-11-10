@@ -95,27 +95,21 @@ export default function Masrafgiriscikis() {
       masrafIndex = snapshot.data().indexMasraf || 0;
       setMasrafIndex(masrafIndex)
     }
-    
-    const q = query(
-      collectionGroup(dbfs,`transactions`),
-      where("cikisMasraf","==",false),
-      where("userEmail","==",encodeMail),
-    );
     const summaryRef2 = collection(dbfs, `admins/${encodeMail}/years/year_${year}/monthly_masraf/${year}-${month}/transactions`);
     const sumsnapshot = await getDocs(summaryRef2);
     const sum = sumsnapshot.size || 0;
     setTotalDayMasraf(sum)
-    const querySnapshot = await getDocs(q)
-    if(masrafData&&querySnapshot.size===masrafData?.length) return;
-      for(const doc of querySnapshot.docs){
+    if(masrafData&&sumsnapshot.size===masrafData?.length) return;
+      for(const doc of sumsnapshot.docs){
         const StringID = doc.id.replace("autoID","");
         const numberID = Number(StringID)
         setTotalDayMasrafPrice(prev => Number(prev) + Number(doc.data().details.price))
         addMasraf({id:numberID,...doc.data().details})
-        const aciklamaKisaca = doc.data().details.bilgi.substring(0,10)+"...";
+        const aciklamaTamami = doc.data().details.bilgi
+        const aciklamaKisaca = aciklamaTamami.length >10 ? aciklamaTamami.substring(0,10)+"..." : aciklamaTamami;
         setRecentMasrafActivity((prev) => [
         {
-          plate: aciklamaKisaca,
+          bilgi: aciklamaKisaca,
           action:"giriş",
           time: new Date(doc.data().details.joinDate).toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" }),
         },
@@ -123,7 +117,7 @@ export default function Masrafgiriscikis() {
       ]);
         setFilterRecentActivity((prev) => [
         {
-          plate: aciklamaKisaca,
+          bilgi: aciklamaKisaca,
           action:"giriş",
           time: new Date(doc.data().details.joinDate).toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" }),
         },
@@ -407,12 +401,10 @@ export default function Masrafgiriscikis() {
             {filterRecentActivity.map((activity, index) => (
               <div 
                 key={index}
-                onClick={()=>recentActivityExit(activity.action,activity.bilgi)}
                 className="flex select-none justify-between items-center p-3 cursor-pointer bg-gray-50 rounded-lg my-2 border border-gray-400"
               >
                 <span className="font-medium text-black">{activity.bilgi}</span>
                 <div className="text-right">
-                  <span className={`block text-sm ${activity.action==="giriş" ? "text-indigo-500" : "text-red-500"}`}>{activity.action}</span>
                   <span className="text-xs text-gray-500">{activity.time}</span>
                 </div>
               </div>
