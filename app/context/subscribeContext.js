@@ -1,4 +1,5 @@
 "use client"
+import { Paragliding } from '@mui/icons-material';
 import React, { createContext, useState, useContext, useCallback, useEffect } from 'react';
 import toast from 'react-hot-toast';
 
@@ -27,6 +28,7 @@ export const SubscribeProvider = ({ children }) => {
       price: numPrice,
       createdAt: newSub.createdAt,
       phonenumber:newSub.phonenumber,
+      paraVerdi:newSub.paraverdi
     };
     setSubscriberData(prev => {
       // Plaka kontrolü

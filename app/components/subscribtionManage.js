@@ -11,7 +11,7 @@ import {
   GridActionsCellItem,
   GridRowEditStopReasons,
   } from '@mui/x-data-grid';
-import { FormControl, Input, InputLabel, Paper, Stack } from "@mui/material";
+import { Checkbox, FormControl, FormControlLabel, FormLabel, Input, InputLabel, Paper, Radio, RadioGroup, Stack } from "@mui/material";
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
 import SaveIcon from '@mui/icons-material/Save';
@@ -59,6 +59,7 @@ export default function SubscriptionManage() {
   const [rowModesModel, setRowModesModel] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [isCikis,setIsCikis] = useState(null)
+  const [paraVerdi,setParaVerdi] = useState(false)
   const [encodedEmail,setEncodedEmail] = useState("")
   useEffect(()=>{
   async function getData () {
@@ -92,7 +93,7 @@ export default function SubscriptionManage() {
       for(const doc of querySnapshot.docs){
         const StringID = doc.id.replace("sub","");
         const numberID = Number(StringID)
-        addSubscriber({id:numberID,...doc.data().details})
+        addSubscriber({id:numberID,paraverdi:doc.data().paraverdi,...doc.data().details})
         setRecentActivity((prev) => [
         {
           namesurname: doc.data().details.namesurname,
@@ -181,7 +182,7 @@ export default function SubscriptionManage() {
    if(newRow.phonenumber !== editedSub.phonenumber) newEdit["details.phonenumber"] = newRow.phonenumber;
    if(newRow.price !== editedSub.price) newEdit["details.price"] = newRow.price;
    if(newRow.joinDate !== editedSub.joinDate) newEdit["details.joinDate"] = stringTime;
-
+   if(newRow.paraverdi !== editedSub.paraverdi) newEdit["paraverdi"] = newRow.paraverdi;
 
     updateSubscriber(newRow.id,newRow);
     
@@ -218,12 +219,17 @@ export default function SubscriptionManage() {
       const value = e.price.target.value
       setPhoneNumber(value)
     }
+    if(e.paraVerdi !==null&& e.paraVerdi !==undefined){
+      const value = e.paraVerdi
+      setParaVerdi(value)}  
   }
+  //ABONE ekleme handleAction
   const handleAction = async() => {    
       if(!subscriber) return toast.error("Lütfen isim - soyisim giriniz")
       if(!phoneNumber) return toast.error("Lütfen geçerli bir telefon numarası giriniz")
       if(!price||price<=0) return toast.error("Lütfen geçerli bir ücret giriniz")
       if(!dateValue) return toast.error("Lütfen geçerli bir tarih giriniz")
+      if(paraVerdi ===null || paraVerdi ===undefined) return toast.error("Lütfen geçerli bir durum seçiniz")
       const formatter = new Intl.DateTimeFormat("tr-TR", {
         timeZone: "Europe/Istanbul",
         day: "2-digit",
@@ -259,7 +265,7 @@ export default function SubscriptionManage() {
       id:maxIdDB+1,
       namesurname:subscriber,
       joinDate:utcFormat,
-      price:price,
+      price:Number(price),
       createdAt:utcFormat,
       phonenumber:phoneNumber
     }
@@ -268,11 +274,12 @@ export default function SubscriptionManage() {
         namesurname:subscriber,
         phonenumber:phoneNumber,
         joinDate:utcFormat,
-        price:price,
+        price:Number(price),
         createdAt:utcFormat
       },
       userEmail:encodedEmail,
       cikis:false,
+      paraverdi:paraVerdi
      });
      setTotalDaySub(totalDaySub)
      addSubscriber(newSub)
@@ -288,42 +295,9 @@ export default function SubscriptionManage() {
     setSubscriber("");
     setPhoneNumber("")
     setPrice("")
-    
+    setParaVerdi(null)
   }
-  const ExitSubscriber = (id) =>async()=>{
-    if(isCikis !==null){
-      const selectedSub = subscribeData.find(item =>item.id ===id)
-      const createdTime = new Date(selectedSub.createdAt)
-      const [year, month, day] = [
-        createdTime.getFullYear(),
-        (createdTime.getMonth() + 1).toString().padStart(2, '0'),
-        createdTime.getDate().toString().padStart(2, '0')
-      ];
-      const subRef = doc(dbfs,`admins/${encodedEmail}/subscriptions/sub${selectedSub.id}`)
-      console.error(JSON.stringify(subRef))
-      setDoc(subRef,{
-        cikis:true,
-        userEmail:encodedEmail
-      },{merge:true})
-      removeSubscriber(selectedSub.id)
-      setIsCikis(null)
-      setRecentActivity((prev) => [
-        {
-          namesurname: selectedSub.namesurname,
-          action:"çıkış",
-          time: new Date().toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" }),
-        },
-        ...prev.slice(0, 3),
-      ]);
-      toast.success(`${selectedSub.namesurname} abone çıkışı yapıldı`)
-    }else{
-      const cikisTarih = new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Istanbul"})).toISOString().slice(0,16)
-      setIsCikis(prev => ({
-        ...subscribeData.find(item => item.id === id),
-        cikisTarih: cikisTarih
-      }));
-    }
-  }
+  
   const recentActivityExit =(action,namesurname)=>{
     if(isCikis) return toast.error("Aynı anda 2 çıkış yapılamaz.");
     if(action ==="çıkış") return toast.success("Abone çıkışı yapılmış.")
@@ -384,6 +358,13 @@ export default function SubscriptionManage() {
       editable:true,
     },
     {
+      field: 'paraverdi',
+      headerName: 'Durum',
+      type: 'boolean',
+      width: 90,
+      editable:true,
+    },
+    {
       field: 'actions',
       type: 'actions',
       headerName: 'Aksiyonlar',
@@ -425,12 +406,6 @@ export default function SubscriptionManage() {
             onClick={handleDeleteClick(id)}
             color="inherit"
           />,
-          <GridActionsCellItem key={id}
-          icon={<AddTaskIcon/>}
-          label="Delete"
-          onClick={ExitSubscriber(id)}
-          color="inherit"
-         /> 
         ];
       },
     },
@@ -494,6 +469,20 @@ export default function SubscriptionManage() {
             }`}
             placeholder="Ücret"
           />
+        </div>
+        <div>
+          <FormControl>
+  <FormLabel id="demo-radio-buttons-group-label">Para Durumu</FormLabel>
+  <RadioGroup
+    aria-labelledby="demo-radio-buttons-group-label"
+    defaultValue="Vermedi"
+    name="radio-buttons-group"
+    onChange={(e)=>subscribtionDetailAdd({paraVerdi:e.target.value==="Verdi"?true:false})}
+  >
+    <FormControlLabel value="Verdi" control={<Radio />} label="Verdi" />
+    <FormControlLabel value="Vermedi" control={<Radio />} label="Vermedi" />
+  </RadioGroup>
+</FormControl>
         </div>
         <button
           onClick={() => handleAction()}
