@@ -1,36 +1,42 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# 📢 Otopark Araç Takibi
 
-## Getting Started
+Bu proje, belirli bir otoparka giren araç giriş-çıkışı kontrol edilmektedir.   
+[Web sitesini açmak için tıklayınız.](https://otoparkyonetim.vercel.app/)
+# 🚀 Özellikler
+- İçeriğinde 2 branch bulunmaktadır master ve dev olmak üzere, dev isimli branşta geliştirmeler yapılır herşey kontrol altında hatalar arındırılmış ise master branşına aktarılır.
+```Branşlar arasında geçiş yapmak için:
+- git checkout branşadı
+```
+Bu linkten detaylı bakınız [Web sitesini açmak için tıklayınız.](https://git-scm.com/docs)
+📊 Basit ve Kullanıcı Dostu Arayüz: Web arayüzü ile araçlar kolayca görüntülenebilir.
 
-First, run the development server:
+# 🛠 Kullanılan Teknolojiler
+
+Frontend: React.js / Next.js
+
+Deployment: Vercel
+
+# 📦 Kurulum
+
+Bu repoyu klonlayın:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/EnesKymz/otopark-javascript.git
+cd otopark-javascript
+```
+Gerekli bağımlılıkları yükleyin:
+
+```bash
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+Uygulamayı başlatın:
+```bash
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+📌 Kullanım
 
-## Learn More
+localhost üzerinden websiteyi görüntüleyin.
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
