@@ -79,8 +79,7 @@ export default function Masrafgiriscikis() {
         for(const masraf of masrafData){
           removeMasraf(masraf.id)
           }
-      }
-      
+      } 
     }
     const encodeMail = email.replace(/\./g, '_dot_').replace('@','_q_');
     setSavedEmail(encodeMail)
@@ -99,7 +98,7 @@ export default function Masrafgiriscikis() {
     
     const q = query(
       collectionGroup(dbfs,`transactions`),
-      where("cikis","==",false),
+      where("cikisMasraf","==",false),
       where("userEmail","==",encodeMail),
     );
     const summaryRef2 = collection(dbfs, `admins/${encodeMail}/years/year_${year}/monthly_masraf/${year}-${month}/transactions`);
@@ -113,9 +112,10 @@ export default function Masrafgiriscikis() {
         const numberID = Number(StringID)
         setTotalDayMasrafPrice(prev => Number(prev) + Number(doc.data().details.price))
         addMasraf({id:numberID,...doc.data().details})
+        const aciklamaKisaca = doc.data().details.bilgi.substring(0,10)+"...";
         setRecentMasrafActivity((prev) => [
         {
-          plate: doc.data().details.plate,
+          plate: aciklamaKisaca,
           action:"giriş",
           time: new Date(doc.data().details.joinDate).toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" }),
         },
@@ -123,7 +123,7 @@ export default function Masrafgiriscikis() {
       ]);
         setFilterRecentActivity((prev) => [
         {
-          plate: doc.data().details.plate,
+          plate: aciklamaKisaca,
           action:"giriş",
           time: new Date(doc.data().details.joinDate).toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" }),
         },
@@ -225,7 +225,7 @@ export default function Masrafgiriscikis() {
     const plateRef = doc(dbfs,`admins/${encodedEmail}/years/year_${year}/monthly_masraf/${formattedDate}/transactions/autoID${newRow.id}`)
     
     updateDoc(plateRef,{
-        "details.bilgi":newRow.plate,
+        "details.bilgi":newRow.aciklama,
         "details.joinDate":stringTime,
     },{merge:true})
     return updatedRow;
@@ -274,7 +274,7 @@ export default function Masrafgiriscikis() {
         createdAt:utcFormat
       },
       userEmail:encodedEmail,
-      cikis:false,
+      cikisMasraf:false,
      });
      setTotalDayMasraf(totalDayMasraf+1)
      setMasrafIndex(maxIdDB)

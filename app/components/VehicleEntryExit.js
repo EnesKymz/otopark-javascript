@@ -107,7 +107,7 @@ export default function VehicleEntryExit() {
     if(vehiclesData&&querySnapshot.size===vehiclesData?.length) return;
       for(const doc of querySnapshot.docs){
         const StringID = doc.id.replace("autoID","");
-        const numberID = Number(StringID)
+        const numberID = Number(StringID)        
         addVehicle({id:numberID,...doc.data().details})
         setRecentActivity((prev) => [
         {
@@ -308,6 +308,7 @@ export default function VehicleEntryExit() {
        
      }));
     toast.success(`${licensePlate} plakalı araç girişi yapıldı.`)
+
     setRecentActivity((prev) => [
       {
         plate: licensePlate,

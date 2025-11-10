@@ -25,7 +25,7 @@ export const MasrafDataProvider = ({ children }) => {
     const formattedMasraf = {
       ...newMasraf,
       id: ID,
-      plate: newMasraf.bilgi,
+      bilgi: newMasraf.bilgi,
       joinDate: newMasraf.joinDate,
       price: newMasraf.price || 0,
       createdAt: newMasraf.createdAt
