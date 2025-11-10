@@ -16,6 +16,7 @@
     "@mui/styled-engine-sc": "^7.0.1",
     "@mui/x-charts": "^8.4.0",
     "@mui/x-data-grid": "^7.28.3",
+    "@mui/x-data-grid-pro": "^8.17.0",
     "@radix-ui/themes": "^3.2.1",
     "arctic": "^3.6.0",
     "firebase": "^11.8.1",

@@ -1,6 +1,6 @@
 "use client"
-import VehicleEntryExit from "@/app/components/VehicleEntryExit"
 import { useSession } from "next-auth/react";
+import RaporlarYonetim from "../components/raporlarYonetim";
 
 export default function Dashboard(){
     const { data: session } = useSession();
@@ -9,7 +9,7 @@ export default function Dashboard(){
     <div>
             {session && (
             <>
-            <VehicleEntryExit />
+            <RaporlarYonetim />
             </>
             )}
         </div>

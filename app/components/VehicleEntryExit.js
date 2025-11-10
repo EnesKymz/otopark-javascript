@@ -12,7 +12,7 @@ import {
   GridRowEditStopReasons,
   } from '@mui/x-data-grid';
 import { useDataContext } from "../context/dataContext";
-import { Autocomplete, Paper, TextField } from "@mui/material";
+import { Autocomplete, Button, Dialog, DialogActions, DialogContent, DialogTitle, Paper, TextField } from "@mui/material";
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
 import SaveIcon from '@mui/icons-material/Save';
@@ -26,7 +26,9 @@ export default function VehicleEntryExit() {
   const {data: session,status} = useSession();
   const [licensePlate, setLicensePlate] = useState("")
   const [isValid, setIsValid] = useState(true)
-  
+  const [open, setOpen] = useState(false);
+   const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
   const {
     vehiclesData,
     totalDayVehicle,
@@ -45,10 +47,11 @@ export default function VehicleEntryExit() {
     addExitVehicle,
     setexitVehiclesData
   } = useDataContext()
+    const [newPrice, setNewPrice] = useState(totalDayPrice);
   const [rowModesModel, setRowModesModel] = useState({});
   const [isLoading, setIsLoading] = useState(true);
-  const [isCikis,setIsCikis] = useState(null)
-  const [encodedEmail,setEncodedEmail] = useState("")
+  const [isCikis,setIsCikis] = useState(null);
+  const [encodedEmail,setEncodedEmail] = useState("");
   const [filterRecentActivity,setFilterRecentActivity] = useState(recentActivity)
     const scrollToBottom = () => {
     window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
@@ -320,6 +323,23 @@ export default function VehicleEntryExit() {
     setLicensePlate("");
     
   }
+  const handleSave = async() => {
+    const nowDate = getTurkeyDate()
+      const [yearNow,monthNow,dayNow] = nowDate.split("-")
+      const dateRef = doc(dbfs,"admins",encodedEmail,"years",`year_${yearNow}`,"daily_payments",nowDate)
+    try{
+      
+      await updateDoc(dateRef, {
+          total_price: gunlukKazanc
+        });
+     }catch{
+      await setDoc(dateRef, {
+      total_price: gunlukKazanc
+    });
+  }
+  setTotalDayPrice(gunlukKazanc)
+  handleClose();
+}
   const ExitVehicle = (id) =>async()=>{ 
     if(!id){
       toast.error("Geçersiz plaka değeri")
@@ -345,7 +365,7 @@ export default function VehicleEntryExit() {
         },
         cikis:true,
       })
-        removeVehicle(selectedVehicle.id)
+      removeVehicle(selectedVehicle.id)
       setIsCikis(null)
       setRecentActivity((prev) => [
         {
@@ -374,7 +394,7 @@ export default function VehicleEntryExit() {
       }));
     }
   }
-  const [newPrice,setNewPrice] = useState("")
+  const [gunlukKazanc,setGunlukKazanc] = useState("")
   const handlePriceChange = (e) => {
     const value = Number(e.target.value)
     value >=0 && setNewPrice(value)
@@ -695,6 +715,8 @@ export default function VehicleEntryExit() {
       console.error('Araç silinirken hata oluştu:', error);
     }
   };
+   
+  
   return (
   <div className="flex flex-col w-full min-h-screen bg-gray-50 select-none">
   {/* Ana İçerik */}
@@ -800,22 +822,51 @@ export default function VehicleEntryExit() {
     <div className="w-full md:w-2/3">
       <div className="bg-white rounded-xl shadow-md overflow-hidden">
         <div className="flex justify-between p-4 border-b">
-          <h2 className="text-xl text-start font-semibold text-gray-800">Araç Listesi</h2>
-          <div className="flex items-end text-end space-x-4">
-            <span className="bg-indigo-500 text-white px-3 py-1 rounded-full text-sm">
-              Bugün: {totalDayPrice}₺
-            </span>
-            <span className="bg-indigo-500 text-white px-3 py-1 rounded-full text-sm">
-              Bugün: {totalDayVehicle} araç
-            </span>
-            <Autocomplete
-            options={["Şuan","Çıkanlar"]}
-            renderInput={(params) => <TextField {...params} label="Durum" />}
-            onInputChange={(value)=>{toggleCikisPanel(value.target.innerText)}}
-            className="w-full"
-            />
-          </div>
-        </div>
+      <h2 className="text-xl text-start font-semibold text-gray-800">Araç Listesi</h2>
+
+      <div className="flex items-end text-end space-x-4">
+        {/* Bugünkü Kazancı Düzenle Butonu */}
+        <button
+          onClick={handleOpen}
+          className="bg-indigo-500 text-white px-3 py-1 rounded-full text-sm"
+        >
+          Bugün Kazanç Düzenle
+        </button>
+
+        <span className="bg-indigo-500 text-white px-3 py-1 rounded-full text-sm">
+          Bugün: {totalDayPrice}₺
+        </span>
+        <span className="bg-indigo-500 text-white px-3 py-1 rounded-full text-sm">
+          Bugün: {totalDayVehicle} araç
+        </span>
+
+        <Autocomplete
+          options={["Şuan", "Çıkanlar"]}
+          renderInput={(params) => <TextField {...params} label="Durum" />}
+          onInputChange={(event, value) => toggleCikisPanel(value)}
+          className="w-48"
+        />
+      </div>
+
+      {/* Modal / Dialog */}
+      <Dialog open={open} onClose={()=>handleClose()}>
+        <DialogTitle>Bugünkü Kazancı Düzenle</DialogTitle>
+        <DialogContent className="flex flex-col gap-4">
+          <TextField
+            label="Yeni Kazanç"
+            type="number"
+            value={gunlukKazanc}
+            onChange={(e) => setGunlukKazanc(Number(e.target.value))}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => handleClose()}>İptal</Button>
+          <Button onClick={() => handleSave()} variant="contained" color="primary">
+            Kaydet
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </div>
         
         <div className="overflow-x-auto">
         { !isLoading ? (
