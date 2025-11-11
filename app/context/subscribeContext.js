@@ -10,6 +10,7 @@ export const SubscribeProvider = ({ children }) => {
   const [subscribeData, setSubscriberData] = useState();
   const [subIndex,setSubscribeIndex] = useState(0)
   const [totalDaySub, setTotalDaySub] = useState(0);
+   const [notifications, setNotifications] = useState([]);
   // Verileri localStorage'a kaydediyoruz
   // Daha güvenli araç ekleme fonksiyonu
   const addSubscriber = useCallback((newSub) => {
@@ -67,6 +68,7 @@ export const SubscribeProvider = ({ children }) => {
   }, []);
   // Context değerleri
   const contextValue = {
+    notifications,setNotifications,
     subscribeData,
     totalDaySub,
     setTotalDaySub,

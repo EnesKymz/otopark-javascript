@@ -712,7 +712,7 @@ export default function VehicleEntryExit() {
     setexitVehiclesData(prev => prev?.filter(item => item.id !==id));
     addVehicle(vehicle)
     }catch(error){
-      console.error('Araç silinirken hata oluştu:', error);
+      console.error('Araç silinirken hata oluştu:');
     }
   };
    

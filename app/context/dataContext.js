@@ -116,7 +116,7 @@ export const DataProvider = ({ children }) => {
     setVehiclesData(prev => prev.filter(item => item.id !==id));
    
     }catch(error){
-      console.error('Araç silinirken hata oluştu:', error);
+      console.error('Araç silinirken hata oluştu:');
     }
   }, []);
   // Context değerleri

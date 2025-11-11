@@ -15,7 +15,7 @@ export default function Header({setClickedTab}) {
     const [profileMenu,setProfileMenu] = useState(false);
     const {data:session} = useSession();
     const [notificationPanel,setNotificationPanel] = useState(false);
-    const [notifications,setNotifications] = useState([])
+    const {notifications,setNotifications} = useSubContext()
     const [savedEmail,setSavedEmail] = useState("")
     const pathname = usePathname()
     const panelRef = useRef(null)
@@ -53,6 +53,7 @@ export default function Header({setClickedTab}) {
           const subId = doc.id
           const joinDate = doc.data().joinDate
           const namesurname = doc.data().details.namesurname
+          const paraverdi = doc.data().paraverdi
           const date = new Date(joinDate)
           const formattedJoinDate = date.toISOString().slice(0,10)
           const [year,month,day] = formattedJoinDate.split("-")
@@ -64,7 +65,7 @@ export default function Header({setClickedTab}) {
               const userExists = notifications.find(item=>item.namesurname === namesurname)
               if(userExists) return
             }
-            setNotifications((prev)=>[...prev, { id:subId,namesurname:namesurname,date:realDate }])
+            setNotifications((prev)=>[...prev, { id:subId,namesurname:namesurname,date:realDate,paraverdi:paraverdi }])
           }
         }
       }
@@ -306,7 +307,10 @@ export default function Header({setClickedTab}) {
                               <span className="mr-1">ℹ️</span>
                               1 aylık abonelik süresi sona ermiştir.
                             </div>
-
+                              <div className="flex items-center text-sm text-blue-600 mt-2 italic">
+                              <span className="mr-1">ℹ️</span>
+                              Para Durumu: <span className={value.paraverdi ? "text-indigo-500":"text-red-500"}>{value.paraverdi ? "Verdi":"Vermedi"}</span>
+                            </div>
                             <div className="flex justify-end mt-4">
                               <button onClick={renewSubscription(value.id,value.namesurname)} className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 text-sm rounded-lg transition cursor-pointer">
                                 Aboneliği Yenile

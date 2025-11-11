@@ -64,7 +64,7 @@ export const MasrafDataProvider = ({ children }) => {
     setMasrafData(prev => prev.filter(item => item.id !==id));
    
     }catch(error){
-      console.error('Masraf silinirken hata oluştu:', error);
+      console.error('Masraf silinirken hata oluştu:');
     }
   }, []);
   // Context değerleri

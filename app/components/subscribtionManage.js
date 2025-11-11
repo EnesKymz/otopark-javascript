@@ -48,7 +48,8 @@ export default function SubscriptionManage() {
     totalDaySub,
     setTotalDaySub,
     removeSubscriber,
-    updateSubscriber
+    updateSubscriber,
+    setNotifications,
   } = useSubContext()
   const {data: session,status} = useSession();
   const [subscriber, setSubscriber] = useState("")
@@ -180,8 +181,17 @@ export default function SubscriptionManage() {
    if(newRow.phonenumber !== editedSub.phonenumber) newEdit["details.phonenumber"] = newRow.phonenumber;
    if(newRow.price !== editedSub.price) newEdit["details.price"] = newRow.price;
    if(newRow.joinDate !== editedSub.joinDate) newEdit["joinDate"] = stringTime;
-   if(newRow.paraverdi !== editedSub.paraverdi) newEdit["paraVerdi"] = newRow.paraverdi;
-    console.error(JSON.stringify(newRow));
+   if(newRow.paraverdi !== editedSub.paraverdi) newEdit["paraverdi"] = newRow.paraverdi;
+   const date = new Date(newRow.joinDate)
+    const formattedJoinDate = date.toISOString().slice(0,10)
+    const [year,month,day] = formattedJoinDate.split("-")
+    const realDate = `${day}/${month}/${year}`
+   const updatedData = {
+     id:String(newRow.id),namesurname:newRow.namesurname,date:realDate,paraverdi:newRow.paraverdi
+   }
+    setNotifications(prev => prev.map(subscriber => 
+      subscriber.id.replace("sub","") === String(newRow.id) ? { ...subscriber,...updatedData  }: subscriber
+    ))
     updateSubscriber(newRow.id,newRow);
     
       
@@ -265,7 +275,8 @@ export default function SubscriptionManage() {
       joinDate:utcFormat,
       price:Number(price),
       createdAt:utcFormat,
-      phonenumber:phoneNumber
+      phonenumber:phoneNumber,
+      paraverdi:paraVerdi
     }
      setDoc(userRef,{
       details:{
@@ -293,7 +304,6 @@ export default function SubscriptionManage() {
     setSubscriber("");
     setPhoneNumber("")
     setPrice("")
-    setParaVerdi(null)
   }
   
   const recentActivityExit =(action,namesurname)=>{
