@@ -31,8 +31,9 @@ export default function RaporlarYonetim(){
     const [selectedYear,setSelectedYear] = useState("");
     const [activeTab, setActiveTab] = useState(0);
     const [infoRapor,setInfoRapor] = useState({
-      aracgiriskazanci:0,
-      masraf:0,
+      aracgiriskazanci:-1,
+      masraf:-1,
+      totalAboneKazanc:-1
     });
     const handleRowEditStop = (params, event) => {
     if (params.reason === GridRowEditStopReasons.rowFocusOut) {
@@ -48,7 +49,11 @@ export default function RaporlarYonetim(){
   const handleFilter = async() => {
     setIsLoading(true);
     setDataArac([]);
-    setInfoRapor([]);
+    setInfoRapor({
+      aracgiriskazanci:-1,
+      masraf:-1,
+      totalAboneKazanc:-1
+    });
     if (status === 'loading') return; // Oturum yükleniyor
     if (status === 'unauthenticated') {
       throw new Error('Kullanıcı giriş yapmamış');
@@ -338,7 +343,7 @@ export default function RaporlarYonetim(){
     {
       field: 'paraverdi',
       headerName: 'Durum',
-      type: 'Boolean',
+      type: 'boolean',
       readOnly: false,
       editable: true,
       width: 90,
@@ -433,7 +438,7 @@ export default function RaporlarYonetim(){
           {/* Özet Kartları */}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {/* Kazanç Kartı */}
-            {!isLoading && infoRapor?.aracgiriskazanci > 0 && (
+            {!isLoading && infoRapor?.aracgiriskazanci >= 0 && (
               <Card 
                 sx={{ 
                   background: 'linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%)',
@@ -455,7 +460,7 @@ export default function RaporlarYonetim(){
             )}
 
             {/* Abone Kazancı Kartı */}
-            {!isLoading && infoRapor?.abonekazanci > 0 && (
+            {!isLoading && infoRapor?.totalAboneKazanc >= 0 && (
               <Card 
                 sx={{ 
                   background: 'linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%)',
@@ -470,14 +475,14 @@ export default function RaporlarYonetim(){
                     <TrendingUpIcon sx={{ color: '#0284c7', fontSize: 24 }} />
                   </Box>
                   <Typography variant="h4" sx={{ color: '#075985', fontWeight: 700 }}>
-                    {infoRapor?.abonekazanci} ₺
+                    {infoRapor?.totalAboneKazanc} ₺
                   </Typography>
                 </CardContent>
               </Card>
             )}
             
             {/* Masraf Kartı */}
-            {!isLoading && infoRapor.masraf > 0 && (
+            {!isLoading && infoRapor.masraf >= 0 && (
               <Card
                 sx={{ 
                   background: 'linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%)',
@@ -499,7 +504,7 @@ export default function RaporlarYonetim(){
             )}
             
             {/* Net Kazanç Kartı */}
-            {!isLoading && (infoRapor?.aracgiriskazanci > 0 || infoRapor?.masraf > 0 || infoRapor?.abonekazanci > 0) && (
+            {!isLoading && (infoRapor?.aracgiriskazanci >= 0 || infoRapor?.masraf >= 0 || infoRapor?.abonekazanci >= 0) && (
               <Card 
                 sx={{ 
                   background: 'linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%)',
@@ -514,7 +519,7 @@ export default function RaporlarYonetim(){
                     <AccountBalanceWallet sx={{ color: '#3949ab', fontSize: 24 }} />
                   </Box>
                   <Typography variant="h4" sx={{ color: '#1a237e', fontWeight: 700 }}>
-                    {(infoRapor.aracgiriskazanci || 0) + (infoRapor.abonekazanci || 0) - (infoRapor.masraf || 0)} ₺
+                    {(infoRapor.aracgiriskazanci || 0) + (infoRapor.totalAboneKazanc || 0) - (infoRapor.masraf || 0)} ₺
                   </Typography>
                   <Typography variant="caption" sx={{ color: '#3949ab', mt: 1, display: 'block' }}>
                     {selectedMonth && selectedYear ? `${selectedMonth}/${selectedYear}` : 'Tüm Dönem'}
