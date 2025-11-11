@@ -12,7 +12,7 @@ import {
   GridRowEditStopReasons,
   } from '@mui/x-data-grid';
 import { useDataContext } from "../context/dataContext";
-import { Autocomplete, Button, Dialog, DialogActions, DialogContent, DialogTitle, Paper, TextField } from "@mui/material";
+import { Autocomplete, Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, FormLabel, Paper, Radio, RadioGroup, TextField } from "@mui/material";
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
 import SaveIcon from '@mui/icons-material/Save';
@@ -27,8 +27,10 @@ export default function VehicleEntryExit() {
   const [licensePlate, setLicensePlate] = useState("")
   const [isValid, setIsValid] = useState(true)
   const [open, setOpen] = useState(false);
-  const [gunlukKazanc,setGunlukKazanc] = useState("")
-  const [gunlukTarih,setGunlukTarih] = useState()
+  const [gunlukKazanc,setGunlukKazanc] = useState("");
+  const [gunlukTarih,setGunlukTarih] = useState();
+  const [aracUcret,setAracUcret] = useState(0);
+  const [aracTuru,setAracTuru] = useState("");
    const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
   const {
@@ -99,7 +101,10 @@ export default function VehicleEntryExit() {
       vehicleIndex = snapshot.data().index
       setVehicleIndex(vehicleIndex)
     }
-    
+    const adminRef = doc(dbfs,"admins",encodeMail)
+    const adminData = await getDoc(adminRef)
+    const entryVehiclePrice = adminData.data()&&adminData.data().vehicleEntryPrice||0;
+    setAracUcret(entryVehiclePrice);
     const q = query(
       collectionGroup(dbfs,`transactions`),
       where("cikis","==",false),
@@ -280,7 +285,7 @@ export default function VehicleEntryExit() {
       const summarySnapshot = await getDoc(summaryRef);
       const indexDB = summarySnapshot.data()
       const maxIdDB = indexDB?.index || 0
-      const vehicleEntryPrice = indexDB?.vehicleEntryPrice||50
+      const vehicleEntryPrice = Number(aracUcret)||50
       const userRef = doc(dbfs,`admins/${encodedEmail}/years/year_${year}/daily_payments/${date}/transactions/autoID${maxIdDB+1}`);
       
      setDoc(userRef,{
@@ -324,6 +329,7 @@ export default function VehicleEntryExit() {
       ...prev.slice(0, 3),
     ]);
     setLicensePlate("");
+    setTotalDayPrice(totalDayPrice+vehicleEntryPrice)
     
   }
   const handleSave = async() => {
@@ -748,6 +754,16 @@ export default function VehicleEntryExit() {
               !isValid && licensePlate ? " focus:ring-red-400 focus:border-red-400" : "focus:ring-indigo-500 focus:border-indigo-500"
             }`}
             placeholder="79 ABC 123"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Ücret</label>
+          <input
+            value={aracUcret}
+            type="number"
+            onChange={(value) => setAracUcret(value.target.value)}
+            className={`w-full p-3 border rounded-lg ring-0 focus:outline-none focus:ring-2 text-black`}
+            placeholder="0"
           />
         </div>
         <div className="flex justify-end">
