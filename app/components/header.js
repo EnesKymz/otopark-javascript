@@ -19,7 +19,7 @@ export default function Header({setClickedTab}) {
     const [savedEmail,setSavedEmail] = useState("")
     const pathname = usePathname()
     const panelRef = useRef(null)
-    const {removeSubscriber} = useSubContext()
+    const {updateSubscriber,removeSubscriber} = useSubContext()
     const hideTab = () => setClickedTab(false)
     const showTab = () => setClickedTab(true)
     const [device,setDevice] = useState("")
@@ -51,7 +51,7 @@ export default function Header({setClickedTab}) {
         const snapshotSub = await getDocs(subRef)
         for(const doc of snapshotSub.docs){
           const subId = doc.id
-          const joinDate = doc.data().details.joinDate
+          const joinDate = doc.data().joinDate
           const namesurname = doc.data().details.namesurname
           const date = new Date(joinDate)
           const formattedJoinDate = date.toISOString().slice(0,10)
@@ -99,37 +99,45 @@ export default function Header({setClickedTab}) {
       const idRef = doc(dbfs,"admins",savedEmail,"subscriptions",id)
       const oldIdSnapshot = await getDoc(idRef)
       const phonenumber = oldIdSnapshot.data()&&oldIdSnapshot.data().details.phonenumber
+      const lastMonthPriceData = oldIdSnapshot.data()&&oldIdSnapshot.data().joinDate
+      const paraVerdiAbone = oldIdSnapshot.data()&&oldIdSnapshot.data().paraverdi
+      const [year,month,dayandTime] = lastMonthPriceData.split("-");
+      const day = dayandTime.split("T")[0];
       const price = oldIdSnapshot.data()&&oldIdSnapshot.data().details.price
-      const adminRef = doc(dbfs,"admins",savedEmail)
-      const adminDataSnapshot = await getDoc(adminRef)
-      const maxId = adminDataSnapshot.data()&& adminDataSnapshot.data().subIndex
-      const newSubId = `sub${maxId+1}`
-      updateDoc(idRef,{
-        cikis:true
+      const subId = Number(id.replace("sub",""));
+      const renewSubRef = doc(dbfs,"admins",savedEmail,"subscriptions",id)
+      const billSubscriptions = doc(dbfs,"admins",savedEmail,"billSubscriptions",`pay_${subId}_${year}${month}`)
+      setDoc(billSubscriptions,{
+        id:subId,
+        namesurname:namesurname,
+        paymentDate:`${year}-${month}`,
+        price:price,
+        paraverdi:paraVerdiAbone
       })
-      
-      const renewSubRef = doc(dbfs,"admins",savedEmail,"subscriptions",newSubId)
       const nowInTurkey = new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Istanbul" }));
-      const utcFormat = nowInTurkey.toISOString();
-      if(oldIdSnapshot.data()){
-      setDoc(renewSubRef,{
+      const utcFormatReset = nowInTurkey.setHours(0,0,0,0);
+      const utcFormatKnowDay = new Date(utcFormatReset).setDate(day);
+      const utcFormat = new Date(utcFormatKnowDay).toISOString();
+      const renewSub = {
+        id:subId,
         cikis:false,
-        details:{
-          createdAt:utcFormat,
-          joinDate:utcFormat,
-          namesurname:namesurname,
-          phonenumber:phonenumber,
-          price:price
-        },
-        userEmail:savedEmail
-      })
-      updateDoc(adminRef,{
-        subIndex:maxId+1
-      })
+        createdAt:utcFormat,
+        joinDate:utcFormat,
+        namesurname:namesurname,
+        phonenumber:phonenumber,
+        price:price,
+        userEmail:savedEmail,
+        paraVerdi:false,
+      }
+      if(oldIdSnapshot.data()){
+      updateDoc(renewSubRef,{
+        cikis:false,
+        joinDate:utcFormat,
+        paraverdi:false,
+      },{merge:true})
+      await updateSubscriber(subId,renewSub)
       }
     }finally{
-      const subId = id.replace("sub","");
-      removeSubscriber(subId)
       notifications && notifications.length>0 && setNotifications(prev => prev?.filter(item => item.id !==id));
       toast.success(`${namesurname} adlı kullanıcının aboneliği başarıyla yenilendi`)    } 
     }
@@ -327,6 +335,8 @@ export default function Header({setClickedTab}) {
             {[
               { href: "/anasayfa", label: "Ana Sayfa", key: "anasayfa" },
               { href: "/aracgiris", label: "Araç Girişi", key: "aracgiris" },
+               { href: "/masraf", label: "Masraf Girişi", key: "masraf" },
+              { href: "/aboneyonetimi", label: "Abone Yönetimi", key: "aboneyonetimi" },
             ].map(({ href, label, key }) => (
               <Link
                 key={key}

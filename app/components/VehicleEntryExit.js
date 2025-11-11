@@ -510,7 +510,7 @@ export default function VehicleEntryExit() {
           />,
           <GridActionsCellItem key={id}
           icon={<AddTaskIcon/>}
-          label="Delete"
+          label="Done"
           onClick={ExitVehicle(id)}
           color="inherit"
          /> 

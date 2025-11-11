@@ -62,6 +62,8 @@ export default function RootLayout({ children }) {
           (<title>Şifre Yenile</title>)
           :pathname==="/arac-hareketleri" ? 
           (<title>Araç Hareketleri</title>)
+          :pathname==="/raporlar" ? 
+          (<title>Aylık Rapor Sayfası</title>)
           :pathname==="/otoyikama" ?
           (<title>Oto Yıkama</title>) 
           :pathname==="/masraf" ?

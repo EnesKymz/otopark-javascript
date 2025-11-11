@@ -93,7 +93,7 @@ export default function SubscriptionManage() {
       for(const doc of querySnapshot.docs){
         const StringID = doc.id.replace("sub","");
         const numberID = Number(StringID)
-        addSubscriber({id:numberID,paraverdi:doc.data().paraverdi,...doc.data().details})
+        addSubscriber({id:numberID,paraverdi:doc.data().paraverdi,joinDate:doc.data().joinDate,...doc.data().details})
         setRecentActivity((prev) => [
         {
           namesurname: doc.data().details.namesurname,
@@ -126,13 +126,13 @@ export default function SubscriptionManage() {
   };
 
   const handleDeleteClick = (id) => () => {
-    if (confirm("Bu kişiyi silmek istediğinize emin misiniz?")) {
+    if (confirm("Aboneliği sonlandırılacaktır emin misiniz?")) {
     removeSubscriber(id)
     const email = session?.user?.email
     if(!email){
       return;
     }
-    const subscriber = subsr.find(item =>item.id ===id)
+    const subscriber = subscribeData.find(item =>item.id ===id)
     const createdTime = new Date(subscriber.createdAt)
     if(!createdTime){
       toast.error("Tarih bulunamadı veya hatalı")
@@ -140,9 +140,7 @@ export default function SubscriptionManage() {
     }
     const encodedEmail = email.replace(/\./g, '_dot_').replace('@','_q_');
     const subRef = doc(dbfs,`admins/${encodedEmail}/subscriptions/sub${id}`)
-    deleteDoc(subRef)
-    const newTotal = totalDayVehicle-1
-    setTotalDaySub(newTotal)
+    updateDoc(subRef,{cikis:true},{merge:true})
     toast.success(`${id} numaralı abone başarıyla silindi.`)
     }
   };
@@ -181,9 +179,9 @@ export default function SubscriptionManage() {
    if(newRow.namesurname !== editedSub.namesurname) newEdit["details.namesurname"] = newRow.namesurname;
    if(newRow.phonenumber !== editedSub.phonenumber) newEdit["details.phonenumber"] = newRow.phonenumber;
    if(newRow.price !== editedSub.price) newEdit["details.price"] = newRow.price;
-   if(newRow.joinDate !== editedSub.joinDate) newEdit["details.joinDate"] = stringTime;
-   if(newRow.paraverdi !== editedSub.paraverdi) newEdit["paraverdi"] = newRow.paraverdi;
-
+   if(newRow.joinDate !== editedSub.joinDate) newEdit["joinDate"] = stringTime;
+   if(newRow.paraverdi !== editedSub.paraverdi) newEdit["paraVerdi"] = newRow.paraverdi;
+    console.error(JSON.stringify(newRow));
     updateSubscriber(newRow.id,newRow);
     
       
@@ -273,10 +271,10 @@ export default function SubscriptionManage() {
       details:{
         namesurname:subscriber,
         phonenumber:phoneNumber,
-        joinDate:utcFormat,
         price:Number(price),
         createdAt:utcFormat
       },
+      joinDate:utcFormat,
       userEmail:encodedEmail,
       cikis:false,
       paraverdi:paraVerdi
