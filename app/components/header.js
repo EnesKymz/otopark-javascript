@@ -213,7 +213,7 @@ export default function Header({setClickedTab}) {
                       : "text-gray-500 hover:text-indigo-500"
                   }`}
                 >
-                  Masraf Girişi
+                  Harcamalarım
                 </Link>
                 <Link
                 onClick={handleTabClick("aboneyonetimi")}
