@@ -27,6 +27,8 @@ export default function VehicleEntryExit() {
   const [licensePlate, setLicensePlate] = useState("")
   const [isValid, setIsValid] = useState(true)
   const [open, setOpen] = useState(false);
+  const [gunlukKazanc,setGunlukKazanc] = useState("")
+  const [gunlukTarih,setGunlukTarih] = useState()
    const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
   const {
@@ -88,6 +90,7 @@ export default function VehicleEntryExit() {
     setEncodedEmail(encodeMail);
     const date = getTurkeyDate()
     const [year,month,day] = date.split("-")
+    setGunlukTarih(`${year}-${month}-${day}`)
     const summaryRef = doc(dbfs,`admins/${encodeMail}`)
     const snapshot = await getDoc(summaryRef)
     
@@ -324,11 +327,9 @@ export default function VehicleEntryExit() {
     
   }
   const handleSave = async() => {
-    const nowDate = getTurkeyDate()
-      const [yearNow,monthNow,dayNow] = nowDate.split("-")
-      const dateRef = doc(dbfs,"admins",encodedEmail,"years",`year_${yearNow}`,"daily_payments",nowDate)
+      const [yearNow,monthNow,dayNow] = gunlukTarih.split("-")
+      const dateRef = doc(dbfs,"admins",encodedEmail,"years",`year_${yearNow}`,"daily_payments",`${yearNow}-${monthNow}-${dayNow}`)
     try{
-      
       await updateDoc(dateRef, {
           total_price: gunlukKazanc
         });
@@ -336,9 +337,15 @@ export default function VehicleEntryExit() {
       await setDoc(dateRef, {
       total_price: gunlukKazanc
     });
+  }finally{
+    setGunlukKazanc(0)
+    setTotalDayPrice(gunlukKazanc);
+    const date = getTurkeyDate()
+    const [year,month,day] = date.split("-")
+    setGunlukTarih(`${year}-${month}-${day}`)
+    handleClose();
   }
-  setTotalDayPrice(gunlukKazanc)
-  handleClose();
+  
 }
   const ExitVehicle = (id) =>async()=>{ 
     if(!id){
@@ -394,7 +401,6 @@ export default function VehicleEntryExit() {
       }));
     }
   }
-  const [gunlukKazanc,setGunlukKazanc] = useState("")
   const handlePriceChange = (e) => {
     const value = Number(e.target.value)
     value >=0 && setNewPrice(value)
@@ -830,7 +836,7 @@ export default function VehicleEntryExit() {
           onClick={handleOpen}
           className="bg-indigo-500 text-white px-3 py-1 rounded-full text-sm"
         >
-          Bugün Kazanç Düzenle
+          Kazanç Düzenle
         </button>
 
         <span className="bg-indigo-500 text-white px-3 py-1 rounded-full text-sm">
@@ -857,6 +863,12 @@ export default function VehicleEntryExit() {
             type="number"
             value={gunlukKazanc}
             onChange={(e) => setGunlukKazanc(Number(e.target.value))}
+          />
+          <TextField
+            label="Değişen Tarih"
+            type="date"
+            value={gunlukTarih}
+            onChange={(e) => setGunlukTarih(e.target.value)}
           />
         </DialogContent>
         <DialogActions>
