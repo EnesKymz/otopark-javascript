@@ -25,6 +25,7 @@ export default function RaporlarYonetim(){
     const {data: session,status} = useSession();
     const [dataArac, setDataArac] = useState([]);
     const [dataAbone,setDataAbone] = useState([])
+    const [dataMasraf,setDataMasraf] = useState([])
     const [rowModesModel, setRowModesModel] = useState({});
     const [isLoading,setIsLoading] = useState(false);
     const [selectedMonth,setSelectedMonth] = useState("");
@@ -49,6 +50,8 @@ export default function RaporlarYonetim(){
   const handleFilter = async() => {
     setIsLoading(true);
     setDataArac([]);
+    setDataAbone([])
+    setDataMasraf([])
     setInfoRapor({
       aracgiriskazanci:-1,
       masraf:-1,
@@ -122,6 +125,24 @@ export default function RaporlarYonetim(){
         }else{
             tempData.price = 0;
         }
+        const summaryRef2 = collection(dbfs, `admins/${encodedEmail}/years/year_${selectedYear}/monthly_masraf/${selectedYear}-${selectedMonth}/transactions`);
+    const sumsnapshot = await getDocs(summaryRef2);
+      for(const doc of sumsnapshot.docs){
+        const StringID = doc.id.replace("autoID","");
+        const numberID = Number(StringID)
+        const arrayMasraf = {
+          id:numberID,
+          ...doc.data().details
+        }
+        setDataMasraf(prev => {
+      // Plaka kontrolü     
+      if (prev) {
+        return [...prev, arrayMasraf];
+      } else {
+        return [arrayMasraf];
+      }
+    })
+      }
         setInfoRapor(prev=>({
       ...prev,
       masraf:tempData.price,
@@ -238,6 +259,72 @@ export default function RaporlarYonetim(){
     return updatedRow;
   };
 
+  const processRowUpdateAbone = async(newRow) => {
+  const updatedRow = { ...newRow, isNew: false };
+   if(!newRow.id||!newRow.namesurname||!newRow.price){
+    !newRow.id && toast.error("ID değeri boş bırakılamaz")
+    !newRow.namesurname && toast.error("İsim - Soyisim değeri boş bırakılamaz")
+    !newRow.price && toast.error("Ücret değeri boş bırakılamaz")
+    return;
+   }
+
+   const email = session?.user?.email
+    if(!email){
+      return;
+    }
+    const encodedEmail = email.replace(/\./g, '_dot_').replace('@','_q_');
+    const newDate = new Date(new Date(newRow.joinDate).toLocaleString("en-US", { timeZone: "Europe/Istanbul" }));
+   const editedSub = dataAbone?.find(item=>item.id===newRow.id)
+   let newEdit = {}
+    
+   if(newRow.namesurname !== editedSub.namesurname) newEdit["namesurname"] = newRow.namesurname;
+   if(newRow.price !== editedSub.price) newEdit["price"] = newRow.price;
+   if(newRow.paraverdi !== editedSub.paraverdi) newEdit["paraverdi"] = newRow.paraverdi;
+   
+   const updatedData = {
+     id:newRow.id,namesurname:newRow.namesurname,paraverdi:newRow.paraverdi
+   }
+    setDataAbone(prev => prev?.map(subscriber => 
+      subscriber.id === newRow.id ? { ...subscriber, ...updatedData } : subscriber
+    ));
+    
+    
+    const plateRef = doc(dbfs,`admins/${encodedEmail}/billSubscriptions/pay_${newRow.id}_${selectedYear}${selectedMonth}`)
+    updateDoc(plateRef,newEdit,{merge:true})
+    return updatedRow;
+  };
+
+  const processRowUpdateMasraf = (newRow) => {
+   const updatedRow = { ...newRow, isNew: false };
+   if(!newRow.id||!newRow.bilgi||!newRow.price||!newRow.joinDate){
+    !newRow.id && toast.error("ID değeri boş bırakılamaz")
+    !newRow.bilgi && toast.error("Açıklama değeri boş bırakılamaz")
+    !newRow.joinDate && toast.error("Tarih değeri boş bırakılamaz")
+    !newRow.price && toast.error("Ücret değeri boş bırakılamaz")
+    return;
+   }
+    const email = session?.user?.email
+      if(!email){
+        return;
+      }
+      const encodedEmail = email.replace(/\./g, '_dot_').replace('@','_q_');
+      const editedVehicle = dataMasraf?.find(item=>item.id===newRow.id)
+      const createdAt = editedVehicle&&editedVehicle.joinDate
+      const date = new Date(createdAt)
+      const formattedDate = date.toISOString().slice(0,10)
+      const [year,month,day] = formattedDate.split("-")
+      const newDate = new Date(new Date(newRow.joinDate).toLocaleString("en-US", { timeZone: "Europe/Istanbul" }));
+      const stringTime = newDate.toISOString();
+    const plateRef = doc(dbfs,`admins/${encodedEmail}/years/year_${year}/monthly_masraf/${selectedYear}-${selectedMonth}/transactions/autoID${newRow.id}`)
+    
+    updateDoc(plateRef,{
+        "details.bilgi":newRow.bilgi,
+        "details.joinDate":stringTime,
+        "details.price":newRow.price
+    },{merge:true})
+    return updatedRow;
+  };
+  
   const handleRowModesModelChange = (newRowModesModel) => {
     setRowModesModel(newRowModesModel);
   };
@@ -344,6 +431,89 @@ export default function RaporlarYonetim(){
       field: 'paraverdi',
       headerName: 'Durum',
       type: 'boolean',
+      readOnly: false,
+      editable: true,
+      width: 90,
+    },
+    {
+      field: 'actions',
+      type: 'actions',
+      headerName: 'Aksiyonlar',
+      width: 100,
+      cellClassName: 'actions',
+      getActions: ({ id }) => {
+        const isInEditMode = rowModesModel[id]?.mode === GridRowModes.Edit;
+        if (isInEditMode) {
+          return [
+            <GridActionsCellItem key={id}
+            icon={<SaveIcon/>}
+              label="Save"
+              sx={{
+                color: 'primary.main',
+              }}
+              onClick={handleSaveClick(id)}
+            />,
+            <GridActionsCellItem key={id}
+            icon={<CancelIcon/>}
+              label="Cancel"
+              className="textPrimary"
+              onClick={handleCancelClick(id)}
+              color="inherit"
+            />,
+          ];
+        }
+
+        return [
+          <GridActionsCellItem key={id}
+            icon={<EditIcon/>}
+            label="Edit"
+            className="textPrimary"
+            onClick={handleEditClick(id)}
+            color="inherit"
+          />,
+          <GridActionsCellItem key={id}
+          icon={<DeleteIcon/>}
+            label="Delete"
+            onClick={handleDeleteClick(id)}
+            color="inherit"
+          />
+        ];
+      },
+    },
+  ];
+  const columnsMasraf = [
+    {field: "id", headerName: 'ID', width: 90,},
+    {
+      field: 'bilgi',
+      headerName: 'Açıklama',
+      type: 'string',
+      width: 180,
+      editable:true,
+    },
+    {
+      field: 'joinDate',
+      headerName: 'Tarih',
+      type: 'date',
+      valueGetter: (value,row) => {
+        const date = row.joinDate;
+        if (!date) return null;
+        const turkeyTime = new Date(date); // +3 saat
+        return turkeyTime;
+      },
+      readOnly: false,
+      editable: true,
+      width: 90,
+    },
+    {
+      field: 'price',
+      headerName: 'Harcama',
+      type: 'number',
+      valueFormatter: (value) => {
+      if (!value || typeof value !== 'number') {
+        return value;
+      }
+      return `${value.toLocaleString()} ₺`;
+      },
       readOnly: false,
       editable: true,
       width: 90,
@@ -542,6 +712,7 @@ export default function RaporlarYonetim(){
               >
                 <Tab label="Araç Giriş Raporu" />
                 <Tab label="Abone Raporu" />
+                <Tab label="Harcama Raporu" />
               </Tabs>
             </Box>
 
@@ -575,7 +746,21 @@ export default function RaporlarYonetim(){
                       pageSizeOptions={[10, 50, { value: 100, label: '100' }, { value: -1, label: 'All' }]}
                       onRowModesModelChange={handleRowModesModelChange}
                       onRowEditStop={handleRowEditStop}
-                      processRowUpdate={processRowUpdate}
+                      processRowUpdate={processRowUpdateAbone}
+                      sx={{ border: 0 }}
+                      onProcessRowUpdateError={(error) => console.error(error)}
+                    />
+                  )}
+                  {activeTab === 2 && (
+                    <DataGrid
+                      rows={dataMasraf}
+                      columns={columnsMasraf}
+                      editMode="row"
+                      rowModesModel={rowModesModel}
+                      pageSizeOptions={[10, 50, { value: 100, label: '100' }, { value: -1, label: 'All' }]}
+                      onRowModesModelChange={handleRowModesModelChange}
+                      onRowEditStop={handleRowEditStop}
+                      processRowUpdate={processRowUpdateMasraf}
                       sx={{ border: 0 }}
                       onProcessRowUpdateError={(error) => console.error(error)}
                     />
