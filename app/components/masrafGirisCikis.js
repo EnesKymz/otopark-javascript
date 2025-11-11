@@ -12,12 +12,12 @@ import {
   GridRowEditStopReasons,
   } from '@mui/x-data-grid';
 import { useMasrafDataContext } from "../context/masrafContext";
-import { Autocomplete, Paper, TextField } from "@mui/material";
+import { Autocomplete, Chip, Paper, TextField,Box } from "@mui/material";
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Close';
-import AddTaskIcon from '@mui/icons-material/AddTask';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import { MoonLoader } from "react-spinners"
 import Loader from "./animations/loader"
 import { getTurkeyDate } from "../utils/getTurkeyDate";
@@ -26,6 +26,8 @@ export default function Masrafgiriscikis() {
   const {data: session,status} = useSession();
   const [aciklama, setAciklama] = useState("")
   const [masrafGirilen, setMasrafGirilen] = useState(0)
+  const [selectedMonth,setSelectedMonth] = useState("")
+  const [selectedYear,setSelectedYear] = useState("");
     const [dateMasraf, setMasrafDate] = useState(Date.now())  
   const {
     masrafData,
@@ -33,7 +35,6 @@ export default function Masrafgiriscikis() {
     masrafIndex,
     setMasrafIndex,
     addMasraf,
-    updateMasraf,
     setTotalDayMasraf,
     removeMasraf ,
     savedEmail,
@@ -42,19 +43,14 @@ export default function Masrafgiriscikis() {
     setSavedEmail,
     recentMasrafActivity, 
     setRecentMasrafActivity,
-    dataMasraf, setDataMasraf,
-    totalMasrafData,settotalMasrafData,
-    exitMasrafData,
-    setexitMasrafData
+    settotalMasrafData,
+    setMasrafData,
   } = useMasrafDataContext()
   const [rowModesModel, setRowModesModel] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [isCikis,setIsCikis] = useState(null)
   const [encodedEmail,setEncodedEmail] = useState("")
   const [filterRecentActivity,setFilterRecentActivity] = useState(recentMasrafActivity)
-    const scrollToBottom = () => {
-    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-  };
   useEffect(()=>{
   async function getData () {
   try{
@@ -87,6 +83,8 @@ export default function Masrafgiriscikis() {
     const date = getTurkeyDate()
     setMasrafDate(date);
     const [year,month,day] = date.split("-")
+    setSelectedMonth(month)
+    setSelectedYear(year)
     const summaryRef = doc(dbfs,`admins/${encodeMail}`)
     const snapshot = await getDoc(summaryRef)
     
@@ -229,9 +227,90 @@ export default function Masrafgiriscikis() {
     setRowModesModel(newRowModesModel);
   };
 
-  
+  const handleFilter = async()=>{
+    try{
+    setIsLoading(true)
+    if (status === 'loading') return; // Oturum yükleniyor
+    if (status === 'unauthenticated') {
+      throw new Error('Kullanıcı giriş yapmamış');
+    }
+    if (!session || typeof session !== 'object' || !session.user || !session.user.email) {
+      throw new Error('Eksik kullanıcı bilgisi');
+    }    
+    const email = session.user.email
+    const encodedEmail = email.replace(/\./g, '_dot_').replace('@','_q_');
+    if(!email){
+      return;
+    }
+    setMasrafData([])
+    setMasrafIndex(0)
+    setTotalDayMasraf(0)
+    setTotalDayMasrafPrice(0)
+    if(encodedEmail !== savedEmail){
+      setMasrafIndex(0)
+      setTotalDayMasraf(0)
+      setRowModesModel({})
+      if(masrafData && masrafData?.length > 0){
+        for(const masraf of masrafData){
+          removeMasraf(masraf.id)
+          }
+      } 
+    }
+    const encodeMail = email.replace(/\./g, '_dot_').replace('@','_q_');
+    const summaryRef = doc(dbfs,`admins/${encodeMail}`)
+    const snapshot = await getDoc(summaryRef)
+    
+    let masrafIndex = 0
+    if(snapshot.exists()){
+      masrafIndex = snapshot.data().indexMasraf || 0;
+      setMasrafIndex(masrafIndex)
+    }
+    const summaryRef2 = collection(dbfs, `admins/${encodeMail}/years/year_${selectedYear}/monthly_masraf/${selectedYear}-${selectedMonth}/transactions`);
+    const sumsnapshot = await getDocs(summaryRef2);
+    const sum = sumsnapshot.size || 0;
+    setTotalDayMasraf(sum)
+    if(masrafData&&sumsnapshot.size===masrafData?.length) return;
+      for(const doc of sumsnapshot.docs){
+        const StringID = doc.id.replace("autoID","");
+        const numberID = Number(StringID)
+        setTotalDayMasrafPrice(prev => Number(prev) + Number(doc.data().details.price))
+        addMasraf({id:numberID,...doc.data().details})
+        const aciklamaTamami = doc.data().details.bilgi
+        const aciklamaKisaca = aciklamaTamami.length >10 ? aciklamaTamami.substring(0,10)+"..." : aciklamaTamami;
+        setRecentMasrafActivity((prev) => [
+        {
+          bilgi: aciklamaKisaca,
+          action:"giriş",
+          time: new Date(doc.data().details.joinDate).toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" }),
+        },
+        ...prev.slice(0, 3),
+      ]);
+        setFilterRecentActivity((prev) => [
+        {
+          bilgi: aciklamaKisaca,
+          action:"giriş",
+          time: new Date(doc.data().details.joinDate).toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" }),
+        },
+        ...prev.slice(0, 3),
+      ]);
+      }
+      /*for(const doc of totalSnapshot.docs){
+        const cikis = doc.data().cikis;
+        if(!cikis) continue;
+        const details = doc.data().details;
+        const vehicleTime = new Date(details.joinDate)
+        const currentTime = new Date();
+        const timeDiff = (currentTime.getTime() - vehicleTime.getTime());
+        const timeDiffInDays = Math.round(timeDiff / (1000 * 3600 * 24))+1;
+        setTotalDayPrice(prev => prev + (doc.data().details.price * timeDiffInDays))
+      }*/
 
-
+    }catch(error){
+      console.error(error.message)
+    }finally{
+      setIsLoading(false)
+    }
+  }
   const handleAction = async() => {
     if (!aciklama || aciklama.trim() === "" || !masrafGirilen || masrafGirilen <= 0 || !dateMasraf || dateMasraf.trim() === "") {
       toast.error("Açıklama, masraf veya tarih boş olamaz!")
@@ -515,24 +594,62 @@ export default function Masrafgiriscikis() {
         <div className="flex justify-between p-4 border-b">
           <h2 className="text-xl text-start font-semibold text-gray-800">Masraflar</h2>
           <div className="flex justify-end items-end text-end space-x-4 w-full">
-            <span className="bg-indigo-500 text-white px-3 py-1 rounded-full text-sm w-fit">
+            <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center',
+            p: 2,
+            borderBottom: '1px solid #e0e0e0',
+            flexWrap: 'wrap',
+            gap: 2
+          }}>      
+          <span className="bg-indigo-500 text-white px-3 py-1 rounded-full text-sm w-fit">
               Bu ay: {totalDayMasrafPrice}₺
             </span>
             <span className="bg-indigo-500 text-white px-3 py-1 rounded-full text-sm w-fit">
               {masrafData?.length ||0} adet masraf
-            </span>
-            <Autocomplete
-            options={["Şuan","Çıkanlar"]}
-            renderInput={(params) => <TextField {...params} label="Durum" />}
-            onInputChange={(value)=>{toggleCikisPanel(value.target.innerText)}}
-            className="w-fit"
-            />
+            </span>      
+            {/* Kompakt Tarih Seçici */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <CalendarMonthIcon sx={{ color: '#6366f1', fontSize: 20 }} />
+              
+              <select 
+                className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+              >
+                <option value="">Ay</option>
+                {["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"].map(m => (
+                  <option key={m} value={m}>{m}</option>
+                ))}
+              </select>
+              
+              <select 
+                className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value)}
+              >
+                <option value="">Yıl</option>
+                {["2024", "2025", "2026", "2027", "2028", "2029", "2030"].map(y => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
+              </select>
+              
+              <button
+                onClick={()=>handleFilter()}
+                className="bg-indigo-500 text-white px-4 py-1.5 rounded-lg text-sm hover:bg-indigo-600 transition-colors"
+              >
+                Filtrele
+              </button>
+            </Box>
+          </Box>
           </div>
         </div>
         
         <div className="overflow-x-auto">
         { !isLoading ? (
           <div className="flex justify-between">
+          
           <Paper className="flex select-none" sx={{height:'30rem', width: '100%' }}>
             <DataGrid
               rows={masrafData}

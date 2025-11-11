@@ -182,6 +182,7 @@ export default function SubscriptionManage() {
    if(newRow.price !== editedSub.price) newEdit["details.price"] = newRow.price;
    if(newRow.joinDate !== editedSub.joinDate) newEdit["joinDate"] = stringTime;
    if(newRow.paraverdi !== editedSub.paraverdi) newEdit["paraverdi"] = newRow.paraverdi;
+   
    const date = new Date(newRow.joinDate)
     const formattedJoinDate = date.toISOString().slice(0,10)
     const [year,month,day] = formattedJoinDate.split("-")
@@ -194,9 +195,18 @@ export default function SubscriptionManage() {
     ))
     updateSubscriber(newRow.id,newRow);
     
-      
+    
     const plateRef = doc(dbfs,`admins/${encodedEmail}/subscriptions/sub${newRow.id}`)
     updateDoc(plateRef,newEdit,{merge:true})
+    if(newRow.paraverdi){
+    const billRef = doc(dbfs,`admins/${encodedEmail}/billSubscriptions/pay_${newRow.id}_${year}${month}`)
+    setDoc(billRef,{
+      id:newRow.id,
+      namesurname:newRow.namesurname,
+      paymentDate:`${year}-${month}`,
+      price:newRow.price,
+    })
+    }
     return updatedRow;
   };
 

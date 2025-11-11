@@ -70,6 +70,7 @@ export const MasrafDataProvider = ({ children }) => {
   // Context değerleri
   const contextValue = {
     masrafData,
+    setMasrafData,
     totalDayMasraf,
     masrafIndex,
     setMasrafIndex,
