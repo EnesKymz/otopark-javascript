@@ -30,8 +30,7 @@ export default function Header({setClickedTab}) {
             window.location.href="/"
         }
     },[session])
-    useEffect(()=>{
-      
+    useEffect(()=>{ 
       showTab()
       pathname ? setTab(pathname?.split("/")[1]):setTab("aracgiris");
     },[pathname])

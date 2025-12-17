@@ -4,7 +4,7 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import crypto from "crypto"
-import { createUserWithEmailAndPassword, getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import {  getAuth, signInWithEmailAndPassword } from "firebase/auth";
 const auth = getAuth()
 export const authOptions = {
   providers: [
