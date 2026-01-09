@@ -21,7 +21,7 @@
     "arctic": "^3.6.0",
     "firebase": "^11.8.1",
     "firebase-admin": "^13.2.0",
-    "next": "15.5.7",
+    "next": "15.5.9",
     "next-auth": "^4.24.11",
     "prop-types": "^15.8.1",
     "react": "^19.0.0",
